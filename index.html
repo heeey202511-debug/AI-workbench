@@ -467,6 +467,25 @@ function syncPull() {
   });
 }
 
+// ---- 实时新闻（前端，依赖后端 /api/news） ----
+let LIVE_NEWS = { tech: null, stock: null, _loading: false };
+function fetchLiveNews() {
+  const base = getSyncBase();
+  if (!base || LIVE_NEWS._loading) return;
+  LIVE_NEWS._loading = true;
+  fetch(base.replace(/\/$/, '') + '/api/news', { headers: { 'Content-Type': 'application/json' } })
+    .then(r => r.json())
+    .then(res => {
+      if (res && res.ok) {
+        if (res.tech && res.tech.length) LIVE_NEWS.tech = res.tech;
+        if (res.stock && res.stock.length) LIVE_NEWS.stock = res.stock;
+        if (currentView === 'news' || currentView === 'stock') switchView(currentView);
+      }
+    })
+    .catch(() => {})
+    .finally(() => { LIVE_NEWS._loading = false; });
+}
+
 let currentView = 'home';
 let searchQuery = '';
 
@@ -1231,34 +1250,38 @@ function renderDietDetail(id) {
 }
 
 function renderNewsView() {
-  const news = getTodayNews();
+  const isLive = !!(LIVE_NEWS.tech && LIVE_NEWS.tech.length);
+  const news = isLive ? LIVE_NEWS.tech : getTodayNews();
+  fetchLiveNews();
   return `
     <div class="news-head">
       <img src="cats/c2.png" style="width:60px;height:60px;object-fit:contain;">
       <h2 style="font-size:20px;font-weight:800;">今日科技动态</h2>
-      <p style="font-size:13px;color:var(--text-soft);margin-top:4px;">精选 5 条 AI/科技新闻 · 保持信息敏锐度喵</p>
+      <p style="font-size:13px;color:var(--text-soft);margin-top:4px;">${isLive ? '🔴 实时抓取自网络 · 每 30 分钟更新' : '示例内容 · 在 ☁️ 配置同步服务器后自动更新'}</p>
     </div>
     ${news.map(n => `
-      <div class="news-item">
+      <div class="news-item" ${n.url ? `onclick="window.open('${escapeHtml(n.url)}','_blank')"` : ''} style="${n.url ? 'cursor:pointer' : ''}">
         <div class="title">${escapeHtml(n.title)}</div>
-        <div class="tagline">${escapeHtml(n.tagline)}</div>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">${escapeHtml(n.source)} · ${escapeHtml(n.date)}</div>
+        ${n.tagline ? `<div class="tagline">${escapeHtml(n.tagline)}</div>` : ''}
+        <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">${escapeHtml(n.source || '')} · ${escapeHtml(n.date || '')}</div>
       </div>
     `).join('')}
   `;
 }
 
 function renderStockView() {
-  const news = STOCK_NEWS;
+  const isLive = !!(LIVE_NEWS.stock && LIVE_NEWS.stock.length);
+  const news = isLive ? LIVE_NEWS.stock : STOCK_NEWS;
+  fetchLiveNews();
   return `
     <div class="view-head">
       <img src="cats/c0.png" style="width:60px;height:60px;object-fit:contain;">
-      <div class="text"><h2>AI 赛道快讯</h2><p>共 ${news.length} 条行情资讯 · 每日滚动更新</p></div>
+      <div class="text"><h2>AI 赛道快讯</h2><p>共 ${news.length} 条${isLive ? ' · 🔴 实时抓取自网络' : ' 行情资讯 · 示例内容'}</p></div>
     </div>
     ${news.map((n,i) => `
-      <div class="news-item" onclick="window.open('https://www.google.com/search?q='+encodeURIComponent('${escapeHtml(n.title).replace(/'/g,"\'")}'),'_blank')">
+      <div class="news-item" ${n.url ? `onclick="window.open('${escapeHtml(n.url)}','_blank')"` : `onclick="window.open('https://www.google.com/search?q='+encodeURIComponent('${escapeHtml(n.title).replace(/'/g,"\\'")}'),'_blank')"`} style="cursor:pointer;">
         <div class="title">${escapeHtml(n.title)}</div>
-        <div class="tagline">${n.source} · ${n.date}</div>
+        <div class="tagline">${escapeHtml(n.source || '')} · ${escapeHtml(n.date || '')}</div>
       </div>
     `).join('')}
   `;
