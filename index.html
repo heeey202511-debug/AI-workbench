@@ -1783,9 +1783,12 @@ function renderAccountForm(editId) {
     </div>
     <form onsubmit="saveAccount(event,'${editId||''}');return false;">
       <div class="form-group"><label>账号名称</label><input name="name" required value="${escapeHtml(a.name||'')}" placeholder="如：@小喵日常"></div>
-      <div class="form-group"><label>所属主体</label><select name="subjectId">
+      <div class="form-group"><label>所属主体</label><div style="display:flex;gap:8px;align-items:center;">
+        <select name="subjectId" style="flex:1;">
         ${subjects.map(s=>`<option value="${s.id}" ${a.subjectId===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
-      </select></div>
+        </select>
+        <button type="button" class="btn btn-ghost" onclick="addSubject()" style="white-space:nowrap;padding:8px 12px;">+ 新建主体</button>
+      </div></div>
       <div class="form-group"><label>平台</label><select name="platform">
         <option value="小红书" ${a.platform==='小红书'?'selected':''}>小红书</option>
         <option value="抖音" ${a.platform==='抖音'?'selected':''}>抖音</option>
@@ -1803,6 +1806,19 @@ function renderAccountForm(editId) {
       </div>
     </form>
   `;
+}
+function addSubject() {
+  const name = prompt('请输入新主体名称：');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  const existing = (data.subjects || []).find(s => s.name === trimmed);
+  if (existing) { showToast('该主体已存在喵~'); return; }
+  const newSub = { id: uid(), name: trimmed };
+  if (!data.subjects) data.subjects = [];
+  data.subjects.push(newSub);
+  save();
+  showToast('新主体「' + trimmed + '」已创建喵~');
+  openModal('account');
 }
 function saveAccount(e, editId) {
   const fd = new FormData(e.target);
