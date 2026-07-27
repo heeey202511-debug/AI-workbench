@@ -832,33 +832,45 @@ function renderProjectDetail(id) {
   `;
 }
 
+function setMaterialFilter(f) { window.materialFilter = f; switchView('material'); }
 function renderMaterialView() {
   const mats = data.materials || [];
+  const filter = window.materialFilter || 'all';
+  const bloggerCount = mats.filter(m => m.type === 'blogger').length;
+  const list = filter === 'all' ? mats : mats.filter(m => m.type === 'blogger');
   return `
     <div class="view-head">
       <img src="cats/c3.png" style="width:60px;height:60px;object-fit:contain;">
-      <div class="text"><h2>素材小鱼干仓库</h2><p>共 ${mats.length} 条灵感收藏 · 每一条都是宝藏喵</p></div>
+      <div class="text"><h2>素材小鱼干仓库</h2><p>共 ${mats.length} 条灵感收藏 · 🐱 博主主页 ${bloggerCount} 个 · 每一条都是宝藏喵</p></div>
     </div>
-    ${mats.length === 0 ? `
+    <div style="display:flex;gap:8px;margin:6px 0 16px;">
+      <button onclick="setMaterialFilter('all')" style="flex:1;padding:9px;border-radius:12px;border:1px solid ${filter==='all'?'var(--primary)':'var(--border)'};background:${filter==='all'?'var(--pink-soft)':'#fff'};color:${filter==='all'?'var(--primary)':'var(--text-dim)'};font-weight:700;cursor:pointer;font-size:13px;">全部 ${mats.length}</button>
+      <button onclick="setMaterialFilter('blogger')" style="flex:1;padding:9px;border-radius:12px;border:1px solid ${filter==='blogger'?'var(--primary)':'var(--border)'};background:${filter==='blogger'?'var(--pink-soft)':'#fff'};color:${filter==='blogger'?'var(--primary)':'var(--text-dim)'};font-weight:700;cursor:pointer;font-size:13px;">🐱 博主主页 ${bloggerCount}</button>
+    </div>
+    ${list.length === 0 ? `
       <div class="empty">
         <span style="font-size:60px;">📰</span>
-        <h3>素材库空空的</h3>
-        <p>快去收藏一些灵感小鱼干吧~</p>
+        <h3>${filter==='blogger'?'还没有收藏博主主页':'素材库空空的'}</h3>
+        <p>${filter==='blogger'?'粘贴喜欢的博主主页链接，关注灵感来源喵~':'快去收藏一些灵感小鱼干吧~'}</p>
         <div class="cat-hint">右下角 + 添加素材</div>
-      </div>` : mats.map(m => renderMaterialCard(m)).join('')}
+      </div>` : list.map(m => renderMaterialCard(m)).join('')}
   `;
 }
 
 function renderMaterialCard(m) {
+  const isBlogger = m.type === 'blogger';
+  const typeLabel = isBlogger ? '博主主页' : m.type === 'link' ? '链接' : m.type === 'text' ? '文本' : '其他';
+  const typeIcon = isBlogger ? '🐱' : m.type === 'link' ? '🔗' : m.type === 'text' ? '📝' : '🎬';
+  const metaMain = isBlogger ? (m.platform || '博主') : typeLabel;
   return `
     <div class="list-item" onclick="switchView('material','${m.id}')">
       <span class="list-action" onclick="event.stopPropagation();switchView('material','${m.id}')">查看</span>
-      <div class="icon-box" style="background:var(--cyan-soft);font-size:18px;">${m.type==='link'?'🔗':m.type==='text'?'📝':'🎬'}</div>
+      <div class="icon-box" style="background:${isBlogger?'var(--pink-soft)':'var(--cyan-soft)'};font-size:18px;">${typeIcon}</div>
       <div class="content">
         <div class="title">${escapeHtml(m.title)}</div>
-        <div class="meta">${m.type==='link'?'链接':m.type==='text'?'文本':'其他'} · ${m.tags?m.tags.join(', '):'无标签'} · ${fmtDate(m.created)}</div>
+        <div class="meta">${metaMain}${isBlogger?'':' · '}${!isBlogger && m.tags?m.tags.join(', '):''}${(m.tags&&m.tags.length&&isBlogger)?' · '+m.tags.join(', '):''} · ${fmtDate(m.created)}</div>
       </div>
-      <div class="side"><span class="tag tag-cyan">素材</span></div>
+      <div class="side"><span class="tag ${isBlogger?'tag-pink':'tag-cyan'}">${typeLabel}</span></div>
     </div>
   `;
 }
@@ -873,21 +885,23 @@ function renderMaterialDetail(id) {
       <button class="btn btn-ghost btn-sm" onclick="switchView('material')" style="margin-bottom:14px;">← 返回</button>
       <h2 style="font-size:20px;">${escapeHtml(m.title)}</h2>
       <div style="margin-top:8px;">
-        <span class="tag tag-cyan">${m.type==='link'?'链接':m.type==='text'?'文本':'其他'}</span>
+        <span class="tag ${m.type==='blogger'?'tag-pink':'tag-cyan'}">${m.type==='blogger'?'博主主页':m.type==='link'?'链接':m.type==='text'?'文本':'其他'}</span>
+        ${m.platform ? `<span class="tag tag-dim">${escapeHtml(m.platform)}</span>` : ''}
         ${m.tags ? m.tags.map(tg => `<span class="tag tag-dim">#${escapeHtml(tg)}</span>`).join('') : ''}
       </div>
     </div>
     <div class="card">
-      ${m.type==='link' ? `<div class="info-row"><span class="label">链接</span><span class="value" style="word-break:break-all;">${escapeHtml(m.content)}</span></div>` : ''}
+      ${m.type==='link' || m.type==='blogger' ? `<div class="info-row"><span class="label">主页/链接</span><span class="value" style="word-break:break-all;">${escapeHtml(m.content)}</span></div>` : ''}
       ${m.type==='text' ? `<div class="info-row"><span class="label">内容</span><span class="value" style="white-space:pre-wrap;">${escapeHtml(m.content)}</span></div>` : ''}
+      ${m.type==='blogger' ? `<div class="info-row"><span class="label">平台</span><span class="value">${escapeHtml(m.platform||'未知')}</span></div>` : ''}
       ${m.note ? `<div class="info-row"><span class="label">备注</span><span class="value">${escapeHtml(m.note)}</span></div>` : ''}
       ${p.name ? `<div class="info-row"><span class="label">所属项目</span><span class="value"><span class="tag tag-purple">${escapeHtml(p.name)}</span></span></div>` : ''}
       <div class="info-row"><span class="label">创建日期</span><span class="value">${fmtDate(m.created)}</span></div>
     </div>
     ${refTopics.length ? `<div class="detail-section"><h3>💡 已生成选题 (${refTopics.length})</h3>${refTopics.map(tp => renderTopicCard(tp)).join('')}</div>` : ''}
-    <div style="display:flex;gap:10px;margin-top:14px;">
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="openModal('material','${m.id}')">编辑素材</button>
-      <button class="btn btn-ghost" onclick="materialToTopic('${m.id}')">一键转选题</button>
+      ${m.type==='blogger' ? `<button class="btn btn-ghost" onclick="window.open('${escapeHtml(m.content)}','_blank')">🔗 打开主页</button>` : `<button class="btn btn-ghost" onclick="materialToTopic('${m.id}')">一键转选题</button>`}
       <button class="btn btn-danger" onclick="deleteItem('materials','${m.id}')">删除</button>
     </div>
   `;
@@ -1671,10 +1685,16 @@ function renderMaterialForm(editId) {
       <h2>${editId?'编辑素材':'添加素材'}</h2>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
-    <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">直接粘贴链接，帮你自动识别平台、提取标题、推荐选题</div>
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">粘贴链接自动识别平台 · 博主主页可一键收藏灵感来源</div>
     <form onsubmit="saveMaterial(event,'${editId||''}');return false;">
-      <div class="form-group"><label>🔗 粘贴链接</label><textarea name="content" oninput="autoDetectPlatform()" placeholder="粘贴小红书/抖音/B站/公众号等链接..." style="min-height:80px;">${escapeHtml(m.content||'')}</textarea></div>
+      <div class="form-group"><label>类型</label><select name="mtype" onchange="onMaterialTypeChange()">
+        <option value="link" ${m.type==='link'||!m.type?'selected':''}>🔗 素材链接</option>
+        <option value="blogger" ${m.type==='blogger'?'selected':''}>🐱 博主主页</option>
+        <option value="text" ${m.type==='text'?'selected':''}>📝 文本笔记</option>
+      </select></div>
+      <div class="form-group"><label id="contentLabel">${m.type==='blogger'?'🐱 博主主页链接':'🔗 粘贴链接'}</label><textarea name="content" oninput="autoDetectPlatform()" placeholder="粘贴小红书/抖音/B站/公众号等链接..." style="min-height:80px;">${escapeHtml(m.content||'')}</textarea></div>
       <div id="autoDetectResult" style="display:none;padding:10px 14px;margin-bottom:12px;border-radius:12px;background:var(--success-soft);font-size:13px;color:var(--success);font-weight:600;"></div>
+      <div class="form-group" id="bloggerNameWrap" style="display:${m.type==='blogger'?'block':'none'};"><label>博主名称</label><input name="bloggerName" value="${m.type==='blogger'?escapeHtml(m.title||''):''}" placeholder="自动识别，可手动修改"></div>
       <div class="form-group"><label>标签（逗号分隔）</label><input name="tags" id="fTags" value="${(m.tags||[]).join(',')}" placeholder="自动填充" onfocus="autoDetectPlatform()"></div>
       <div class="form-group"><label>关联项目</label><select name="projectId">
         <option value="">自动匹配</option>
@@ -1701,6 +1721,33 @@ function detectPlatform(url) {
   if (u.includes('x.com')||u.includes('twitter.com')) return 'X/Twitter';
   return url.match(/^(https?:\/\/)?[\w.-]+\.\w+/)?.[0] || '';
 }
+function onMaterialTypeChange() {
+  const sel = document.querySelector('[name="mtype"]');
+  const ta = document.querySelector('[name="content"]');
+  const lab = document.getElementById('contentLabel');
+  const nameWrap = document.getElementById('bloggerNameWrap');
+  if (!sel || !ta) return;
+  const t = sel.value;
+  if (t === 'blogger') { ta.placeholder = '粘贴博主主页链接（小红书/B站/抖音/微博/X 等）'; if (lab) lab.textContent = '🐱 博主主页链接'; if (nameWrap) nameWrap.style.display = 'block'; }
+  else if (t === 'link') { ta.placeholder = '粘贴小红书/抖音/B站/公众号等链接...'; if (lab) lab.textContent = '🔗 粘贴链接'; if (nameWrap) nameWrap.style.display = 'none'; }
+  else { ta.placeholder = '写点灵感、文案片段、关键词...'; if (lab) lab.textContent = '📝 写点什么'; if (nameWrap) nameWrap.style.display = 'none'; }
+  autoDetectPlatform();
+}
+function extractBloggerName(url, pf) {
+  try {
+    const u = new URL(url);
+    const segs = u.pathname.split('/').filter(Boolean);
+    const skip = ['user','profile','share','space','home','u','users','member'];
+    let name = '';
+    if (segs.length) {
+      name = segs[segs.length - 1];
+      if (skip.includes(name.toLowerCase()) && segs.length > 1) name = segs[segs.length - 2];
+    }
+    if (!name || /^\d+$/.test(name)) name = u.hostname.replace('www.','').split('.')[0];
+    name = decodeURIComponent(name).replace(/[-_]/g,' ');
+    return name.slice(0, 30) || '';
+  } catch(e) { return ''; }
+}
 function autoDetectPlatform() {
   const ta = document.querySelector('[name="content"]');
   if (!ta) return;
@@ -1708,12 +1755,17 @@ function autoDetectPlatform() {
   const pf = detectPlatform(url);
   const el = document.getElementById('autoDetectResult');
   if (!el) return;
+  const sel = document.querySelector('[name="mtype"]');
+  const isBlogger = sel && sel.value === 'blogger';
   if (pf) {
     el.style.display = 'block';
-    el.textContent = '🔍 检测到：' + pf + ' — 已自动匹配对应赛道';
-    const titleInput = document.querySelector('[name="title"]');
-    if (titleInput && !titleInput.value && url.startsWith('http')) {
-      try { titleInput.value = new URL(url).pathname.split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ').slice(0,30) || ''; } catch(e){}
+    if (isBlogger) {
+      const bn = extractBloggerName(url, pf);
+      el.textContent = '🔍 识别到 ' + pf + ' 博主：' + (bn || '未知') + ' — 已自动填入名称';
+      const nameInput = document.querySelector('[name="bloggerName"]');
+      if (nameInput && !nameInput.value && bn) nameInput.value = bn;
+    } else {
+      el.textContent = '🔍 检测到：' + pf + ' — 已自动匹配对应赛道';
     }
   } else {
     el.style.display = 'none';
@@ -1722,16 +1774,22 @@ function autoDetectPlatform() {
 function saveMaterial(e, editId) {
   const fd = new FormData(e.target);
   const tags = (fd.get('tags')||'').split(/[,，]/).map(s=>s.trim()).filter(Boolean);
-  const content = fd.get('content');
-  let title = '';
-  if (content.startsWith('http')) {
-    try { const pf = detectPlatform(content); title = (pf ? pf + ' · ' : '') + (new URL(content).pathname.split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ')?.slice(0,50) || new URL(content).hostname.replace('www.','')); }
+  const content = (fd.get('content')||'').trim();
+  const mtype = fd.get('mtype') || (content.startsWith('http') ? 'link' : 'text');
+  let title = '', type = mtype, platform = '';
+  if (mtype === 'blogger') {
+    platform = detectPlatform(content);
+    title = (fd.get('bloggerName')||'').trim() || extractBloggerName(content, platform) || (platform ? platform + ' 博主' : '未命名博主');
+  } else if (mtype === 'link') {
+    try { title = (platform = detectPlatform(content)) ? platform + ' · ' + (new URL(content).pathname.split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ')?.slice(0,50) || new URL(content).hostname.replace('www.','')) : content.slice(0,40); }
     catch(e) { title = content.slice(0,40); }
-  } else { title = content.split('\\n')[0]?.slice(0,40) || content.slice(0,30); }
-  const obj = { title, type: content.startsWith('http')?'link':'text', content, projectId: fd.get('projectId'), tags, note: fd.get('note') };
+  } else {
+    title = content.split('\\n')[0]?.slice(0,40) || content.slice(0,30);
+  }
+  const obj = { title, type, platform, content, projectId: fd.get('projectId'), tags, note: fd.get('note') };
   if (editId) { const m = data.materials.find(x=>x.id===editId); if(m) Object.assign(m, obj); }
   else { data.materials.push({ id: uid(), ...obj, created: todayStr() }); }
-  save(); closeModal(); switchView('material'); showToast('素材已保存喵~');
+  save(); closeModal(); switchView('material'); showToast(mtype==='blogger' ? '博主已收藏喵~' : '素材已保存喵~');
 }
 
 function renderTopicForm(editId) {
