@@ -443,6 +443,20 @@ const QUOTES = [
   { text:'The biggest risk is not taking any risk.', author:'Mark Zuckerberg', cn:'最大的风险是不冒任何风险。' },
   { text:'We overestimate what we can do in a day, underestimate what in a year.', author:'Bill Gates', cn:'我们高估一天能做的事，低估一年能做的事。' },
 ];
+function showDataActions() {
+  const m = document.getElementById('modalPanel');
+  m.innerHTML = '<div class="modal-head"><h2>数据管理</h2><button class="modal-close" onclick="closeModal()">✕</button></div><div style="text-align:center;padding:16px 0;"><p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">在不同设备间同步数据</p><button class="btn btn-primary" onclick="exportData();closeModal();" style="margin-bottom:10px;">📤 导出数据</button><input type="file" id="importFile" accept=".json" onchange="var f=this.files[0];var r=new FileReader();r.onload=function(e){try{var d=JSON.parse(e.target.result);data=d;save();location.reload()}catch(ex){showToast("格式错误")}};r.readAsText(f);closeModal();" style="display:none;"><button class="btn btn-ghost" onclick="document.getElementById(\'importFile\').click()" style="margin-top:6px;">📥 导入数据</button></div>';
+  document.getElementById('modal').classList.add('open');
+}
+function exportData() {
+  var b = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'workbench-backup-'+todayStr()+'.json';
+  a.click();
+  showToast('数据已导出');
+}
+
 function todayQuote() {
   const d = new Date().getDate();
   return QUOTES[d % QUOTES.length];
@@ -666,7 +680,7 @@ function renderHome() {
         <div class="greet-tag"><span class="cat-paw">🐾</span>${greetText()}</div>
         <h1>Hi 喵总 👋</h1>
         <p class="greet" id="heroQuote">「${todayQuote().text}」<br><span style="font-size:11px;color:var(--text-dim);">— ${todayQuote().author} · ${todayQuote().cn}</span></p>
-        <div class="date-pill"><span class="dot"></span>${t.replace(/-/g,'/')} ${timeStr()}</div>
+        <div class="date-pill" onclick="showDataActions()"><span class="dot"></span>${t.replace(/-/g,'/')} ${timeStr()}</div>
       </div>
       <img class="cat-img hero-cat-float" src="cats/c7.png" alt="">
     </div>
