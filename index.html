@@ -328,6 +328,7 @@
       
       <div class="topbar-title" id="topbarTitle"><h1>工作台</h1><p>今日也要元气满满</p></div>
     </div>
+    <button class="icon-btn" onclick="showSyncMenu()" title="飞书同步" style="margin-right:4px;">☁️</button>
     <button class="icon-btn" onclick="location.reload()" style="margin-right:4px;">🔄</button>
     <span id="topbarAvatar" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:var(--primary-soft);" onclick="pickAvatar()" title="换头像">🐾</span>
   </div>
@@ -412,6 +413,59 @@ if (stored) {
   } catch(e) { console.error('load failed', e); }
 }
 function save() { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+
+// ---- 飞书同步（前端） ----
+function getSyncBase() { return localStorage.getItem('workbench_sync_url') || ''; }
+function showSyncMenu() {
+  const ov = document.getElementById('syncOverlay');
+  document.getElementById('syncBaseInput').value = getSyncBase();
+  document.getElementById('syncStatus').textContent = '';
+  ov.style.display = 'flex';
+}
+function closeSyncMenu() { document.getElementById('syncOverlay').style.display = 'none'; }
+function saveSyncBase() {
+  const v = document.getElementById('syncBaseInput').value.trim().replace(/\/$/, '');
+  localStorage.setItem('workbench_sync_url', v);
+  const st = document.getElementById('syncStatus');
+  st.textContent = '✅ 地址已保存';
+  if (v) setTimeout(closeSyncMenu, 600);
+}
+function syncReq(method, body) {
+  const base = getSyncBase();
+  if (!base) { alert('请先填写同步服务器地址'); showSyncMenu(); return null; }
+  return fetch(base.replace(/\/$/, '') + '/api/sync', {
+    method, headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(r => r.json()).catch(e => ({ ok: false, msg: '网络错误: ' + e.message }));
+}
+function syncPush() {
+  const st = document.getElementById('syncStatus');
+  st.textContent = '上传中...';
+  syncReq('POST', { data: JSON.stringify(data) }).then(res => {
+    if (res && res.ok) { st.textContent = '✅ ' + (res.msg || '已同步'); showToast('已同步到飞书喵~'); }
+    else { st.textContent = '❌ ' + (res ? res.msg : '同步失败'); }
+  });
+}
+function syncPull() {
+  const st = document.getElementById('syncStatus');
+  st.textContent = '拉取中...';
+  syncReq('GET').then(res => {
+    if (!res || !res.ok) { st.textContent = '❌ ' + (res ? res.msg : '拉取失败'); return; }
+    if (!res.data) { st.textContent = '飞书暂无备份'; return; }
+    if (!confirm('从飞书拉取将覆盖本地当前数据，确定继续？')) { st.textContent = '已取消'; return; }
+    try {
+      const incoming = JSON.parse(res.data);
+      data = Object.assign({}, DEFAULT_DATA, incoming);
+      ['subjects','accounts','projects','todos','materials','topics','reports','diet','stocks','schedules'].forEach(k => {
+        if (!Array.isArray(data[k])) data[k] = DEFAULT_DATA[k];
+      });
+      save();
+      st.textContent = '✅ 已从飞书恢复';
+      showToast('已从飞书拉取喵~');
+      setTimeout(() => { closeSyncMenu(); switchView(currentView); }, 700);
+    } catch (e) { st.textContent = '❌ 数据解析失败'; }
+  });
+}
 
 let currentView = 'home';
 let searchQuery = '';
@@ -2064,5 +2118,21 @@ function init() {
 }
 init();
 </script>
+<div id="syncOverlay" style="display:none;position:fixed;inset:0;background:rgba(40,30,30,0.35);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:380px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="font-size:18px;">☁️ 飞书同步</h2>
+      <button onclick="closeSyncMenu()" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-dim);">✕</button>
+    </div>
+    <div class="form-group"><label>同步服务器地址</label><input id="syncBaseInput" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px;box-sizing:border-box;" placeholder="https://你的后端.railway.app"></div>
+    <div id="syncStatus" style="font-size:13px;color:var(--text-dim);margin:6px 0 12px;min-height:18px;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-ghost" onclick="saveSyncBase()">保存地址</button>
+      <button class="btn btn-primary" onclick="syncPush()">⬆️ 上传到飞书</button>
+      <button class="btn btn-ghost" onclick="syncPull()">⬇️ 从飞书拉取</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:14px;line-height:1.6;">数据经你的后端中转写入飞书多维表格。需先在飞书开放平台建应用，并在后端设置 FEISHU_APP_ID / APP_SECRET / APP_TOKEN / TABLE_ID 四个环境变量。</p>
+  </div>
+</div>
 </body>
 </html>
