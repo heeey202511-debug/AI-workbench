@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AI 工作台">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-ai.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-ai.png">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="theme-color" content="#fff9f5">
+<meta name="format-detection" content="telephone=no">
+<title>运营工作台</title>
+<style>
+
+  :root {
+    --bg: #fff9f5;
+    --bg-soft: #fff0e8;
+    --bg-pink: #fff5f7;
+    --card: #ffffff;
+    --border: #f3e5dc;
+    --border-soft: #f9ede6;
+    --text: #2e2a28;
+    --text-soft: #6b6260;
+    --text-dim: #a89e9b;
+    --primary: #e88a6a;
+    --primary-dark: #d47252;
+    --primary-soft: rgba(232, 138, 106, 0.12);
+    --primary-hover: rgba(232, 138, 106, 0.22);
+    --success: #6fb98f;
+    --success-soft: rgba(111, 185, 143, 0.12);
+    --warning: #e6a23c;
+    --warning-soft: rgba(230, 162, 60, 0.12);
+    --danger: #e56b7e;
+    --danger-soft: rgba(229, 107, 126, 0.12);
+    --purple: #a78bfa;
+    --purple-soft: rgba(167, 139, 250, 0.12);
+    --cyan: #5ab8c4;
+    --cyan-soft: rgba(90, 184, 196, 0.12);
+    --pink: #f48fb1;
+    --pink-soft: rgba(244, 143, 177, 0.12);
+    --orange: #f4a261;
+    --orange-soft: rgba(244, 162, 97, 0.12);
+    --cream: #fff8e7;
+    --cream-soft: #fff5dd;
+    --radius: 24px;
+    --radius-sm: 16px;
+    --shadow-sm: 0 2px 6px rgba(46,42,40,0.04);
+    --shadow: 0 8px 24px rgba(46,42,40,0.07), 0 2px 6px rgba(46,42,40,0.03);
+    --shadow-lg: 0 16px 48px rgba(46,42,40,0.11), 0 4px 12px rgba(46,42,40,0.04);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --nav-w: 110px;
+    --nav-w-open: 260px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+
+  /* 小猫 sprite：原图 1440x1920 按 3x4 切分 */
+
+  .cat-paw { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50% 50% 45% 45%; background: var(--primary-soft); color: var(--primary); font-size: 10px; }
+
+  .drawer { position: fixed; top: 0; left: 0; bottom: 0; z-index: 80; width: var(--nav-w); background: var(--card); border-right: 1px solid var(--border-soft); display: flex; flex-direction: column; padding: calc(14px + var(--safe-top)) 0 calc(14px + var(--safe-bottom)); overflow-y: auto; overflow-x: hidden; box-shadow: 2px 0 16px rgba(46,42,40,0.04); }
+
+  .drawer-head { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 10px; margin-bottom: 2px; border-bottom: 1px solid var(--border-soft); }
+  .drawer-logo { width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0; background: linear-gradient(135deg, var(--primary), var(--pink)); display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(232,138,106,0.35); overflow: hidden; font-size: 16px; }
+  .drawer-title-wrap { display: flex; flex-direction: column; align-items: center; }
+
+  .drawer-title { font-size: 13px; font-weight: 700; letter-spacing: -0.2px; white-space: nowrap; }
+  .drawer-sub { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+  .nav-list { flex: 1; display: flex; flex-direction: column; gap: 0; padding: 4px 3px; overflow-y: auto; }
+  .nav-li { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; border-radius: 12px; text-align: center; position: relative; color: var(--text-soft); cursor: pointer; transition: all 0.15s; font-size: 14px; font-weight: 500; white-space: nowrap; position: relative; }
+  .nav-li .ico-wrap { width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--bg-soft); transition: all 0.15s; font-size: 18px; margin-bottom: 1px; }
+  .nav-li .txt { display: flex; flex-direction: column; align-items: center; }
+
+  .nav-li .lbl { font-size: 11px; font-weight: 600; }
+  @media (max-width: 760px) { .nav-li .lbl { font-size: 11px; } }
+  .nav-li .desc { display: none; }
+  @media (max-width: 760px) { .nav-li .badge { position: absolute; top: 2px; right: 4px; margin: 0; } .drawer-head { padding: 0 8px 10px; } .drawer-title, .drawer-sub { font-size: 0; } .drawer-logo { width: 30px; height: 30px; border-radius: 10px; } }
+  .nav-li:hover { background: var(--bg-soft); color: var(--text); }
+  .nav-li.active { background: var(--primary-soft); color: var(--primary-dark); }
+  .nav-li.active .ico-wrap { background: var(--primary); }
+  .nav-li .badge { position: absolute; top: 4px; right: 6px; background: #ef4444; color: white; font-size: 9px; font-weight: 700; min-width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 50%; box-shadow: 0 1px 3px rgba(239,68,68,0.35); z-index: 1; }
+
+  .drawer-foot { padding: 10px 8px; border-top: 1px solid var(--border-soft); }
+  .nav-li.tog { font-size: 12px; color: var(--text-dim); padding: 8px 9px; }
+  .nav-li.tog .ico-wrap { font-size: 16px; background: transparent; }
+
+  .drawer-mask { display: none; }
+
+  .app { padding-left: var(--nav-w); }
+  @media (max-width: 760px) { .app { padding-left: 90px; } .drawer { width: 90px; padding-left: 0; padding-right: 0; } .nav-li .lbl { font-size: 10px; } .nav-li .ico-wrap { width: 32px; height: 32px; font-size: 16px; } }
+
+  .topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 12px; padding-top: calc(14px + var(--safe-top)); background: rgba(255,249,245,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid transparent; }
+  @media (max-width: 760px) { .topbar { padding: 10px 12px; padding-top: calc(10px + var(--safe-top)); } .topbar-title h1 { font-size: 15px; } .topbar-title p { font-size: 11px; } }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .menu-btn { display: none; width: 40px; height: 40px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); align-items: center; justify-content: center; color: var(--text-soft); cursor: pointer; font-size: 18px; box-shadow: var(--shadow-sm); }
+  @media (max-width: 760px) { .menu-btn { display: none; } }
+  .menu-btn:active { transform: scale(0.94); }
+  .topbar-title h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .topbar-title p { font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-soft); cursor: pointer; font-size: 16px; transition: all 0.15s; box-shadow: var(--shadow-sm); }
+  .icon-btn:active { transform: scale(0.94); }
+
+  .hero { position: relative; padding: 28px 20px 16px; overflow: hidden; border-radius: 0 0 var(--radius) var(--radius); margin: 0 20px; }
+  @media (max-width: 760px) { .hero { margin: 0 12px; padding: 20px 14px 14px; } }
+  .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,249,245,0.94) 0%, rgba(255,245,247,0.82) 60%, rgba(255,249,245,0.65) 100%); z-index: 1; }
+  .hero-bg { position: absolute; inset: -20px -30px -20px -10px; background-image: url('cat-stickers.jpg'); background-size: cover; background-position: center top; opacity: 0.26; transform: rotate(-2deg); filter: saturate(1.1); z-index: 0; }
+  .hero-inner { position: relative; z-index: 2; }
+  .hero .greet-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); font-size: 12px; color: var(--primary-dark); font-weight: 600; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
+  .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 8px; color: var(--text); }
+  @media (max-width: 760px) { .hero h1 { font-size: 22px; } .hero .greet { font-size: 13px; } .hero-cat-float { width: 70px; height: 70px; right: -8px; opacity: 0.4; } }
+  .hero .greet { font-size: 15px; color: var(--text-soft); max-width: 260px; }
+  .hero .date-pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px; padding: 8px 16px; border-radius: 24px; background: var(--card); border: 1px solid var(--border-soft); font-size: 13px; color: var(--text-soft); box-shadow: var(--shadow-sm); }
+  .hero .date-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+  .hero-cat-float { position: absolute; right: 8px; bottom: 4px; width: 80px; height: 80px; z-index: 2; opacity: 0.55; filter: drop-shadow(0 4px 8px rgba(46,42,40,0.06)); }
+  @media (max-width: 380px) { .hero-cat-float { width: 110px; height: 110px; right: -10px; } }
+
+  .section-label { display: flex; align-items: center; gap: 8px; padding: 24px 20px 10px; font-size: 13px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  @media (max-width: 760px) { .section-label { padding: 18px 12px 8px; } }
+  .section-label .cat-paw { width: 16px; height: 16px; font-size: 10px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 20px 4px; }
+  @media (max-width: 760px) { .stats-grid { padding: 0 12px; gap: 6px; } }
+  @media (max-width: 760px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card { background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%); border: 1px solid #e8e4f0; border-radius: 16px; padding: 16px 14px; box-shadow: 0 2px 12px rgba(100,100,180,0.06); transition: all 0.18s; position: relative; overflow: hidden; }
+  .stat-card:active { transform: scale(0.98); box-shadow: 0 4px 16px rgba(100,100,180,0.12); }
+  .stat-card .ic { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; overflow: hidden; }
+  .stat-card .v { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; line-height: 1; }
+  @media (max-width: 760px) { .stat-card .v { font-size: 20px; } .stat-card .l { font-size: 11px; } .stat-card .mini-cat { display: none; } }
+  .stat-card .l { font-size: 12px; color: var(--text-dim); margin-top: 6px; font-weight: 500; }
+
+  .stat-card.s1 .ic { background: var(--success-soft); } .stat-card.s1 .v { color: var(--success); }
+  .stat-card.s2 .ic { background: var(--warning-soft); } .stat-card.s2 .v { color: var(--warning); }
+  .stat-card.s3 .ic { background: var(--primary-soft); } .stat-card.s3 .v { color: var(--primary-dark); }
+  .stat-card.s4 .ic { background: var(--purple-soft); } .stat-card.s4 .v { color: var(--purple); }
+  .stat-card.s5 .ic { background: var(--cream-soft); } .stat-card.s5 .v { color: var(--orange); }
+  .stat-card.s6 .ic { background: var(--pink-soft); } .stat-card.s6 .v { color: var(--pink); }
+  .stat-card.s7 .ic { background: var(--cyan-soft); } .stat-card.s7 .v { color: var(--cyan); }
+  .stat-card.s8 .ic { background: var(--danger-soft); } .stat-card.s8 .v { color: var(--danger); }
+
+  main { padding: 0 20px 140px; max-width: 1000px; margin: 0 auto; }
+  @media (max-width: 760px) { main { padding: 0 12px 140px; } }
+
+  .modules-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 20px 10px; }
+  @media (max-width: 760px) { .modules-grid { padding: 0 12px; gap: 8px; } .module-card { padding: 14px 12px 12px; min-height: 100px; } .module-name { font-size: 14px; } .module-desc { font-size: 11px; } .module-icon-wrap { width: 36px; height: 36px; margin-bottom: 10px; } .module-icon-wrap .cat-img { width: 32px; height: 32px; } }
+  @media (min-width: 760px) { .modules-grid { grid-template-columns: repeat(3, 1fr); } }
+  .module-card { background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%); border: 1px solid #e8e4f0; border-radius: 16px; padding: 18px 14px 14px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s; box-shadow: 0 2px 12px rgba(100,100,180,0.06); min-height: 110px; }
+  .module-card:active { transform: scale(0.98); box-shadow: 0 4px 16px rgba(100,100,180,0.12); }
+  .module-card:hover { transform: translateY(-2px); }
+  .module-icon-wrap { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; overflow: hidden; }
+  .module-card.m1 .module-icon-wrap { background: var(--primary-soft); }
+  .module-card.m2 .module-icon-wrap { background: var(--purple-soft); }
+  .module-card.m3 .module-icon-wrap { background: var(--cyan-soft); }
+  .module-card.m4 .module-icon-wrap { background: var(--pink-soft); }
+  .module-card.m5 .module-icon-wrap { background: var(--orange-soft); }
+  .module-card.m6 .module-icon-wrap { background: var(--success-soft); }
+  .module-card.m7 .module-icon-wrap { background: var(--cream-soft); }
+  .module-card.m8 .module-icon-wrap { background: var(--danger-soft); }
+  .module-card.m9 .module-icon-wrap { background: var(--warning-soft); }
+  .module-name { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+  .module-desc { font-size: 12px; color: var(--text-dim); margin-top: 4px; line-height: 1.4; }
+  .module-badge { position: absolute; top: 14px; right: 14px; background: var(--primary); color: white; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; min-width: 18px; text-align: center; }
+  .module-card .corner-cat { position: absolute; right: -10px; bottom: -12px; width: 60px; height: 60px; opacity: 0.18; }
+
+  .section-title { display: flex; align-items: center; justify-content: space-between; padding: 26px 0 14px; }
+  .section-title::before { content: ''; width: 4px; height: 18px; border-radius: 2px; background: #6b5ce7; margin-right: 10px; }
+  .section-title h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+  .section-title .more { font-size: 13px; color: #6b5ce7; cursor: pointer; font-weight: 600; }
+
+  .card {
+    background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%);
+    border: 1px solid #e8e4f0; border-radius: 16px; padding: 18px 16px 14px;
+    margin-bottom: 10px; box-shadow: 0 2px 12px rgba(100,100,180,0.06);
+    transition: all 0.18s; position: relative; overflow: hidden;
+  }
+  .card:active { transform: scale(0.99); box-shadow: 0 4px 16px rgba(100,100,180,0.12); }
+  .card .card-title { font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; line-height: 1.3; }
+  .card .card-meta { font-size: 12px; color: #b0a8b8; margin-top: 5px; font-style: italic; }
+  .card .card-def { font-size: 13px; font-weight: 600; color: #6b5ce7; margin-top: 6px; line-height: 1.4; }
+  .card .card-action {
+    position: absolute; right: 14px; top: 14px;
+    font-size: 11px; color: #c4bcd0; font-weight: 600;
+    padding: 4px 10px; border-radius: 12px;
+    background: rgba(255,255,255,0.7); border: 1px solid #e8e4f0;
+    cursor: pointer;
+  }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row-between { display: flex; align-items: center; justify-content: space-between; }
+  .col { display: flex; flex-direction: column; gap: 6px; }
+
+  .tag { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .tag-primary { background: #ede9fe; color: #6b5ce7; }
+  .tag-success { background: #dcfce7; color: #16a34a; }
+  .tag-warning { background: #fef3c7; color: #d97706; }
+  .tag-danger { background: #fee2e2; color: #ef4444; }
+  .tag-purple { background: var(--purple-soft); color: var(--purple); }
+  .tag-cyan { background: var(--cyan-soft); color: var(--cyan); }
+  .tag-pink { background: var(--pink-soft); color: var(--pink); }
+  .tag-orange { background: var(--orange-soft); color: var(--orange); }
+  .tag-cream { background: var(--cream-soft); color: var(--orange); }
+
+  .empty { text-align: center; padding: 44px 20px; color: var(--text-dim); }
+  .empty .cat-big { width: 140px; height: 140px; margin: 0 auto 16px; opacity: 0.9; }
+  .empty h3 { font-size: 17px; color: var(--text-soft); margin-bottom: 6px; }
+  .empty p { font-size: 13px; line-height: 1.5; }
+  .empty .cat-hint { margin-top: 14px; padding: 8px 16px; border-radius: 20px; background: var(--bg-soft); display: inline-block; font-size: 12px; color: var(--primary-dark); }
+
+  .fab { position: fixed; right: 22px; bottom: calc(22px + var(--safe-bottom)); width: 60px; height: 60px; border-radius: 50% 50% 45% 45%; background: linear-gradient(135deg, var(--primary), var(--pink)); color: white; border: none; font-size: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(232,138,106,0.45); cursor: pointer; z-index: 60; transition: transform 0.2s; }
+  .fab::before { content: ''; position: absolute; top: 8px; left: 12px; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+  .fab::after { content: ''; position: absolute; top: 8px; right: 12px; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+  .fab.open { transform: rotate(45deg); }
+  .fab:active { transform: scale(0.92); }
+  .fab-menu { position: fixed; right: 22px; bottom: calc(92px + var(--safe-bottom)); display: flex; flex-direction: column; gap: 10px; align-items: flex-end; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: all 0.22s; z-index: 59; }
+  .fab-menu.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+  .fab-menu-item { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); padding: 10px 14px; border-radius: 24px; box-shadow: var(--shadow); font-size: 13px; font-weight: 600; color: var(--text-soft); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .fab-menu-item:active { transform: scale(0.96); }
+  .fab-menu-item .ic { width: 30px; height: 30px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+
+  .modal { position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; justify-content: center; background: rgba(46,42,40,0.35); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .modal.open { opacity: 1; pointer-events: auto; }
+  .modal-panel { width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: var(--radius) var(--radius) 0 0; padding: 22px 20px calc(28px + var(--safe-bottom)); transform: translateY(30px); transition: transform 0.28s cubic-bezier(0.32,0.72,0,1); }
+  .modal.open .modal-panel { transform: translateY(0); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .modal-head h2 { font-size: 18px; font-weight: 800; }
+  .modal-close { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); cursor: pointer; color: var(--text-soft); }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-soft); margin-bottom: 6px; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); font-size: 15px; color: var(--text); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .form-group textarea { min-height: 90px; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn { flex: 1; padding: 13px 16px; border-radius: 14px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:active { background: var(--primary-dark); transform: scale(0.98); }
+  .btn-ghost { background: var(--bg-soft); color: var(--text-soft); }
+  .btn-ghost:active { background: var(--border); transform: scale(0.98); }
+  .btn-danger { background: var(--danger-soft); color: var(--danger); }
+
+  .detail-header { background: linear-gradient(135deg, #f8f7ff 0%, #ede9fe 100%); border: 1px solid #e8e4f0; border-radius: 16px; padding: 20px; margin-bottom: 10px; position: relative; overflow: hidden; box-shadow: 0 2px 12px rgba(100,100,180,0.06); }
+  .detail-header .cat-bg { position: absolute; right: -20px; top: -20px; width: 120px; height: 120px; opacity: 0.15; }
+
+  .list-item { display: flex; align-items: center; gap: 12px; padding: 14px; margin-bottom: 10px; background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.15s; }
+  .list-item:active { transform: scale(0.99); box-shadow: var(--shadow); }
+  .list-item .icon-box { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; overflow: hidden; }
+  .list-item .content { flex: 1; min-width: 0; }
+  .list-item .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-item .meta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+  .list-item .side { text-align: right; flex-shrink: 0; }
+
+  .checkbox { width: 22px; height: 22px; border-radius: 8px; border: 2px solid var(--border); background: var(--card); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .checkbox.checked { background: var(--success); border-color: var(--success); color: white; }
+
+  .progress-bar { height: 10px; border-radius: 5px; background: var(--bg-soft); overflow: hidden; margin-top: 8px; }
+  .progress-bar > div { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--primary), var(--pink)); transition: width 0.3s; }
+
+  .view-head { display: flex; align-items: center; gap: 12px; padding: 10px 0 18px; }
+  .view-head .cat { width: 64px; height: 64px; flex-shrink: 0; }
+  .view-head .text h2 { font-size: 22px; font-weight: 800; }
+  .view-head .text p { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+
+  .diet-total-card { background: linear-gradient(135deg, #f8f7ff 0%, #ede9fe 100%); border: 1px solid #e8e4f0; border-radius: 16px; padding: 22px 18px; margin-bottom: 14px; position: relative; overflow: hidden; box-shadow: 0 2px 12px rgba(100,100,180,0.06); }
+  .diet-total-card .cat { position: absolute; right: -12px; bottom: -16px; width: 100px; height: 100px; opacity: 0.2; }
+  .diet-total-card.over { border-color: var(--danger); background: linear-gradient(135deg, var(--card) 0%, var(--danger-soft) 100%); }
+  .meal-card { margin-bottom: 14px; }
+  .meal-card h4 { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px; }
+  .diet-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card); border: 1px solid var(--border-soft); border-radius: 16px; margin-bottom: 8px; cursor: pointer; }
+  .diet-item .emoji { font-size: 26px; }
+  .diet-item .info { flex: 1; }
+  .diet-item .name { font-weight: 600; }
+  .diet-item .time { font-size: 12px; color: var(--text-dim); }
+  .diet-item .kcal { font-weight: 700; color: var(--primary-dark); }
+
+  .news-head { background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%); border: 1px solid #e8e4f0; border-radius: 16px; padding: 20px; margin-bottom: 14px; position: relative; overflow: hidden; box-shadow: 0 2px 12px rgba(100,100,180,0.06); }
+  .news-head .cat { position: absolute; right: -14px; bottom: -18px; width: 110px; height: 110px; opacity: 0.2; }
+  .news-item { display: block; padding: 16px; background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%); border: 1px solid #e8e4f0; border-radius: 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 12px rgba(100,100,180,0.06); position: relative; }
+  .news-item:active { transform: scale(0.99); }
+  .news-item .title { font-weight: 800; font-size: 15px; line-height: 1.4; color: var(--text); }
+  .news-item .tagline { font-size: 12px; color: #b0a8b8; margin-top: 6px; font-style: italic; }
+  .news-item .news-action { position: absolute; right: 12px; top: 12px; font-size: 11px; color: #c4bcd0; font-weight: 600; padding: 3px 10px; border-radius: 12px; background: rgba(255,255,255,0.7); border: 1px solid #e8e4f0; }
+
+  .stock-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stock-summary .box { background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%); border: 1px solid #e8e4f0; border-radius: 16px; padding: 16px; position: relative; overflow: hidden; box-shadow: 0 2px 12px rgba(100,100,180,0.06); }
+  .stock-summary .box .cat { position: absolute; right: -10px; bottom: -12px; width: 70px; height: 70px; opacity: 0.15; }
+  .stock-summary .v { font-size: 22px; font-weight: 800; }
+  .stock-summary .l { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .stock-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%); border: 1px solid #e8e4f0; border-radius: 16px; margin-bottom: 10px; cursor: pointer; position: relative; box-shadow: 0 2px 12px rgba(100,100,180,0.06); }
+  .stock-item .name { font-weight: 800; font-size: 16px; }
+  .stock-item .code { font-size: 12px; color: #b0a8b8; font-style: italic; margin-top: 3px; }
+  .stock-item .pnl { text-align: right; }
+  .stock-item .pnl-v { font-size: 16px; font-weight: 800; }
+  .stock-item .pnl-p { font-size: 12px; }
+  .stock-item .stock-action { position: absolute; right: 14px; top: 14px; font-size: 11px; color: #c4bcd0; font-weight: 600; padding: 3px 10px; border-radius: 12px; background: rgba(255,255,255,0.7); border: 1px solid #e8e4f0; }
+  .pnl-up { color: var(--danger); }
+  .pnl-down { color: var(--success); }
+
+  .toast { position: fixed; top: calc(16px + var(--safe-top)); left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--text); color: white; padding: 10px 18px; border-radius: 24px; font-size: 13px; font-weight: 600; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.25s; box-shadow: var(--shadow-lg); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 760px) { .stats-grid, .modules-grid { gap: 8px; padding: 0 16px; } .hero { margin: 0 16px; padding: 24px 16px 14px; } main { padding: 0 16px 140px; } .section-label { padding: 20px 16px 8px; } }
+</style>
+</head>
+<body>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-logo" id="drawerLogo" onclick="pickAvatar()" title="点击换头像">🐾</div>
+    <div class="drawer-title-wrap">
+      <div class="drawer-title">运营工作台</div>
+      <div class="drawer-sub" id="drawerSub" onclick="editUsername()" title="点击改名字" style="cursor:pointer;">和小猫一起高效工作</div>
+    </div>
+  </div>
+  <div class="nav-list" id="navList"></div>
+
+</div>
+<div class="drawer-mask" id="drawerMask" onclick="toggleDrawer()"></div>
+
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      
+      <div class="topbar-title" id="topbarTitle"><h1>工作台</h1><p>今日也要元气满满</p></div>
+    </div>
+    <span id="topbarAvatar" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:var(--primary-soft);" onclick="pickAvatar()" title="换头像">🐾</span>
+  </div>
+  <main id="main"></main>
+</div>
+
+<button class="fab" id="fabBtn" onclick="toggleFabMenu()">+</button>
+<div class="fab-menu" id="fabMenu"></div>
+
+<div class="modal" id="modal" onclick="closeModal(event)">
+  <div class="modal-panel" id="modalPanel" onclick="event.stopPropagation()"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY = 'ops_workbench_v3';
+
+const DEFAULT_DATA = {
+  subjects: [
+    { id: 's1', name: '大脸猫猫', desc: 'AI 科技自媒体 · 抖音+小红书双平台矩阵', created: '2026-07-01' }
+  ],
+  accounts: [
+    { id: 'a1', subjectId: 's1', platform: '抖音', name: '@大脸猫猫', fans: 36800, note: '短视频科普·AI日常' },
+    { id: 'a2', subjectId: 's1', platform: '小红书', name: '@大脸猫猫', fans: 21500, note: '图文测评·种草AI工具' }
+  ],
+  projects: [
+    { id: 'p1', subjectId: 's1', name: 'GPT-5 深度测评系列', status: 'progress', goal: '3 篇测评 + 2 条视频', deadline: '2026-08-05', note: '覆盖写作、编程、数据分析三大场景' },
+    { id: 'p2', subjectId: 's1', name: 'AI 工具省钱攻略合集', status: 'todo', goal: '10 款工具横向对比', deadline: '2026-08-01', note: '图片/视频/文案/编程四类' },
+    { id: 'p3', subjectId: 's1', name: 'Cursor vs Copilot 终极对比', status: 'progress', goal: '视频 + 图文 + 代码仓库', deadline: '2026-08-10', note: '' },
+    { id: 'p4', subjectId: 's1', name: 'Claude 4 发布追踪', status: 'done', goal: '3 篇快讯 + 深度分析', deadline: '2026-07-22', note: '' }
+  ],
+  todos: [
+    { id: 't1', projectId: 'p1', title: '撰写 GPT-5 写作能力评测大纲', done: false, time: '09:30', date: todayStr(), priority: 'high' },
+    { id: 't2', projectId: 'p1', title: '录制 GPT-5 编程场景演示视频', done: false, time: '14:00', date: todayStr(), priority: 'medium' },
+    { id: 't3', projectId: 'p2', title: '收集 10 款 AI 工具最新定价信息', done: false, time: '11:00', date: todayStr(), priority: 'high' },
+    { id: 't4', projectId: 'p3', title: '搭建 Cursor + Copilot 对比测试环境', done: true, time: '10:00', date: todayStr(), priority: 'low' }
+  ],
+  materials: [
+    { id: 'm1', projectId: 'p1', type: 'link', title: 'OpenAI GPT-5 官方技术报告', content: 'https://openai.com/research', note: '关键数据引用源', tags: ['官方资料', 'GPT-5'], created: todayStr() },
+    { id: 'm2', projectId: 'p1', type: 'text', title: '用户对 GPT-5 的 10 大期待', content: '1.更长上下文 2.更便宜API 3.多模态增强...', note: '从评论区收集', tags: ['用户洞察', 'GPT-5'], created: todayStr() },
+    { id: 'm3', projectId: 'p2', type: 'link', title: 'AI 工具 2026 年价格对比大全', content: 'https://example.com/ai-tools-price', note: '竞品分析', tags: ['工具测评', '价格'], created: todayStr() }
+  ],
+  topics: [
+    { id: 'tp1', projectId: 'p1', title: '实测：GPT-5 写一篇万字长文只需 3 分钟', sourceMaterialId: 'm1', template: '测评种草', angle: '从自媒体创作者角度实测', status: 'idea', created: todayStr() },
+    { id: 'tp2', projectId: 'p2', title: '月省 2000！这 5 款免费 AI 工具吊打付费版', sourceMaterialId: 'm3', template: '省钱对比', angle: '学生党和自由职业者首选', status: 'draft', created: todayStr() }
+  ],
+  reports: [
+    { id: 'r1', date: todayStr(), content: '今天完成 GPT-5 测试环境搭建，录制了 3 段编程演示素材。数据分析场景的 benchmark 数据收集完毕。明日重点：整理写作场景的测试结果、剪辑视频。', metrics: { views: 3500, likes: 186, comments: 42 } }
+  ],
+  diet: [
+    { id: 'd1', name: '燕麦拿铁', meal: '早餐', kcal: 180, emoji: '☕', date: todayStr(), time: '08:30', note: '少糖' },
+    { id: 'd2', name: '鸡胸肉沙拉', meal: '午餐', kcal: 420, emoji: '🥗', date: todayStr(), time: '12:15', note: '油醋汁' },
+    { id: 'd3', name: '珍珠奶茶', meal: '下午茶', kcal: 380, emoji: '🧋', date: todayStr(), time: '15:30', note: '写稿奖励' }
+  ],
+  stocks: [
+    { id: 'st1', name: '英伟达 (NVDA)', price: '138.0', change: '+6.2%', note: 'AI 芯片龙头' },
+    { id: 'st2', name: '微软 (MSFT)', price: '458.0', change: '+2.1%', note: 'OpenAI 股东' },
+    { id: 'st3', name: '谷歌 (GOOGL)', price: '192.0', change: '-0.8%', note: 'Gemini 追赶中' },
+    { id: 'st4', name: 'Meta (META)', price: '605.0', change: '+1.5%', note: '开源 Llama 生态' }
+  ],
+  avatar: '🐾',
+  username: '大脸猫猫',
+  dietGoal: 2000,
+  pomoTotal: 0,
+  schedules: [
+    { id: 'sc1', title: '浏览 arXiv + 技术动态', start: '08:00', end: '08:30', date: todayStr(), note: 'AI 领域最新论文和新闻' },
+    { id: 'sc2', title: '内容创作（图文/视频）', start: '09:00', end: '11:30', date: todayStr(), note: '专注输出时间' },
+    { id: 'sc3', title: '午餐 + 刷社区', start: '12:00', end: '13:00', date: todayStr(), note: 'Reddit/X/即刻 收集灵感' }
+  ]
+};let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+function getSchedules() { return data.schedules || []; }
+function findSchedule(id) { return (data.schedules||[]).find(x => x.id === id); }
+const stored = localStorage.getItem(STORE_KEY);
+if (stored) {
+  try {
+    const parsed = JSON.parse(stored);
+    data = Object.assign({}, DEFAULT_DATA, parsed);
+    ['subjects','accounts','projects','todos','materials','topics','reports','diet','stocks','schedules'].forEach(k => {
+      if (!Array.isArray(data[k])) data[k] = DEFAULT_DATA[k];
+    });
+  } catch(e) { console.error('load failed', e); }
+}
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+
+let currentView = 'home';
+let searchQuery = '';
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function timeStr() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fmtDate(s) { return s ? s.replace(/-/g,'/') : '-'; }
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const QUOTES = [
+  { text:'Stay hungry, stay foolish.', author:'Steve Jobs', cn:'求知若饥，虚心若愚。' },
+  { text:'The best way to predict the future is to invent it.', author:'Alan Kay', cn:'预测未来的最好方式就是创造它。' },
+  { text:'Move fast and break things.', author:'Mark Zuckerberg', cn:'快速行动，打破常规。' },
+  { text:'Your work is going to fill a large part of your life.', author:'Steve Jobs', cn:'你的工作将占据你人生的很大一部分。' },
+  { text:'The secret of change is to focus all your energy on building the new.', author:'Socrates', cn:'变革的秘诀是集中精力建设新事物。' },
+  { text:'Done is better than perfect.', author:'Sheryl Sandberg', cn:'完成比完美更重要。' },
+  { text:'If you are not embarrassed by the first version, you launched too late.', author:'Reid Hoffman', cn:'如果你不为第一版感到尴尬，那你发布得太晚了。' },
+  { text:'AI is the most profound technology humanity will ever develop.', author:'Sundar Pichai', cn:'AI 是人类将开发的最深远的技术。' },
+  { text:'Scale is the only moat in AI.', author:'Sam Altman', cn:'规模是 AI 领域唯一的护城河。' },
+  { text:'Great things in business are never done by one person.', author:'Steve Jobs', cn:'商业中的伟大成就从来不是一个人完成的。' },
+  { text:'The only way to do great work is to love what you do.', author:'Steve Jobs', cn:'成就伟业的唯一途径是热爱你所做的事。' },
+  { text:'It is not the strongest that survive, but the most adaptable.', author:'Charles Darwin', cn:'适者生存，而非强者生存。' },
+  { text:'Fall in love with the problem, not the solution.', author:'Uri Levine', cn:'爱上问题，而非解决方案。' },
+  { text:'The biggest risk is not taking any risk.', author:'Mark Zuckerberg', cn:'最大的风险是不冒任何风险。' },
+  { text:'We overestimate what we can do in a day, underestimate what in a year.', author:'Bill Gates', cn:'我们高估一天能做的事，低估一年能做的事。' },
+];
+function todayQuote() {
+  const d = new Date().getDate();
+  return QUOTES[d % QUOTES.length];
+}
+function greetText() {
+  const h = new Date().getHours();
+  if (h < 11) return '早上好，今天也和小猫一起加油！';
+  if (h < 14) return '中午好，记得吃饭小憩哦~';
+  if (h < 19) return '下午好，喝杯奶茶继续冲！';
+  return '晚上好，今天辛苦啦，早点休息喵~';
+}
+function fmtMoney(n) {
+  const v = Number(n) || 0;
+  return (v >= 0 ? '+' : '') + v.toLocaleString('zh-CN', {maximumFractionDigits:0});
+}
+
+function getSubject(id) { return data.subjects.find(x => x.id === id) || {}; }
+function getAccount(id) { return data.accounts.find(x => x.id === id) || {}; }
+function getProject(id) { return data.projects.find(x => x.id === id) || {}; }
+function getMaterial(id) { return data.materials.find(x => x.id === id) || {}; }
+function getTopic(id) { return data.topics.find(x => x.id === id) || {}; }
+function getReport(id) { return data.reports.find(x => x.id === id) || {}; }
+function findDiet(id) { return data.diet.find(x => x.id === id); }
+function findStock(id) { return data.stocks.find(x => x.id === id); }
+function getDiet() { return data.diet || []; }
+function getStocks() { return data.stocks || []; }
+function findStock(id) { return (data.stocks||[]).find(x => x.id === id); }
+function materialsByProject(pid) { return data.materials.filter(m => m.projectId === pid); }
+function todosByProject(pid) { return data.todos.filter(t => t.projectId === pid); }
+function topicsByProject(pid) { return data.topics.filter(t => t.projectId === pid); }
+function reportsByProject(pid) { return data.reports.filter(r => r.projectId === pid); }
+
+const STOCK_NEWS = [
+  { title:'英伟达 Blackwell 芯片出货量超预期，AI 算力需求持续爆发', source:'Bloomberg', date:'07-25' },
+  { title:'微软加码 AI 基础设施：明年资本支出预计突破 800 亿美元', source:'Reuters', date:'07-25' },
+  { title:'谷歌 Gemini 企业版降价 40%，打响 AI 价格战', source:'The Verge', date:'07-24' },
+  { title:'Meta 开源 Llama 4 模型下载量突破 5000 万', source:'TechCrunch', date:'07-24' },
+  { title:'OpenAI 新一轮融资估值突破 3000 亿美元', source:'WSJ', date:'07-23' },
+  { title:'苹果 Apple Intelligence 正式上线，AI 手机概念股普涨', source:'CNBC', date:'07-23' },
+  { title:'特斯拉 Optimus 机器人量产延期，AI 硬件板块回调', source:'Bloomberg', date:'07-22' },
+  { title:'AMD 发布新一代 AI 推理芯片，挑战英伟达垄断地位', source:'Reuters', date:'07-22' },
+];
+function getTodayStockNews() {
+  const d = new Date().getDate();
+  return STOCK_NEWS.slice((d%4)*2, (d%4)*2+4);
+}
+const VIEW_TITLES = {
+  home: '工作台', todo: '待办事项', project: '项目中心', material: '素材库',
+  topic: '选题灵感', account: '账号矩阵', report: '工作日报',
+  diet: '饮食记录', news: 'AI/科技新闻', stock: '股市资讯', pomo: '番茄钟', schedule: '日程管理'
+};
+
+const NAV = [
+  { view: 'home',   icon: 'c4', emoji: '🏠', title: '首页',   desc: '喵的总览，一目了然' },
+  { view: 'todo',   icon: 'c7', emoji: '✅', title: '待办',   desc: '抓抓今天的任务' },
+  { view: 'project', icon: 'c6', emoji: '📂', title: '项目',  desc: '策划大事小情' },
+  { view: 'material', icon: 'c3', emoji: '📚', title: '素材', desc: '收藏灵感小鱼干' },
+  { view: 'topic',  icon: 'c1', emoji: '💡', title: '选题',   desc: '点子像猫毛一样多' },
+  { view: 'account', icon: 'c8', emoji: '👥', title: '账号',  desc: '管理猫咪小窝' },
+  { view: 'diet',   icon: 'c4', emoji: '🍱', title: '饮食',   desc: '吃饱了才有力气' },
+  { view: 'news',   icon: 'c2', emoji: '📰', title: '科技',   desc: '看看世界新鲜事' },
+  { view: 'stock',  icon: 'c0', emoji: '📈', title: '股市',   desc: 'AI 赛道每日行情' },
+  { view: 'pomo',   icon: 'c0', emoji: '🍅', title: '番茄',   desc: '25分钟专注' },
+  { view: 'schedule', icon: 'c6', emoji: '📅', title: '日程', desc: '安排每一天' },
+  { view: 'report', icon: 'c9', emoji: '📊', title: '日报',   desc: '每天进步一点点' }
+];
+
+function pickAvatar() {
+  const cur = data.avatar || '🐾';
+  const isImg = cur.startsWith('data:');
+  const html = `<div class="modal-head"><h2>更换头像</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="text-align:center;padding:16px 0;">
+      <div id="avatarPreview" style="width:100px;height:100px;border-radius:50%;margin:0 auto 16px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:50px;background:var(--primary-soft);">${isImg ? '<img src="'+cur+'" style="width:100%;height:100%;object-fit:cover;">' : cur}</div>
+      <input type="file" id="avatarFile" accept="image/*" onchange="previewAvatar()" style="display:none;">
+      <button class="btn btn-primary" onclick="document.getElementById('avatarFile').click()" style="margin-bottom:8px;">📷 从相册选择</button>
+      ${isImg ? '<button class="btn btn-ghost" onclick="data.avatar=\'🐾\';save();updateAvatar();closeModal();showToast(\'已重置为默认头像\')">🔄 重置默认</button>' : ''}
+    </div>
+    <div style="border-top:1px solid var(--border-soft);padding-top:16px;margin-top:8px;">
+      <div class="modal-head" style="margin-bottom:10px;"><h2>更换桌面图标</h2></div>
+      <input type="file" id="desktopIconFile" accept="image/*" onchange="uploadDesktopIcon()" style="display:none;">
+      <button class="btn btn-primary" onclick="document.getElementById('desktopIconFile').click()" style="margin-bottom:8px;">📱 选择桌面图标图片</button>
+      <p style="font-size:12px;color:var(--text-dim);">选一张方形图片，自动裁剪为 iOS 桌面图标（180×180）</p>
+      <div id="iconUploadMsg" style="margin-top:8px;font-size:13px;"></div>
+    </div>`;
+  document.getElementById('modalPanel').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+}
+function uploadDesktopIcon() {
+  const file = document.getElementById('desktopIconFile').files[0];
+  if (!file) return;
+  const msg = document.getElementById('iconUploadMsg');
+  msg.textContent = '处理中...';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const c = document.createElement('canvas');
+      c.width = 180; c.height = 180;
+      const ctx = c.getContext('2d');
+      const s = Math.min(img.width, img.height);
+      const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, 180, 180);
+      const b64 = c.toDataURL('image/png');
+      fetch('/upload-icon', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({image: b64})
+      }).then(r=>r.json()).then(d=>{
+        msg.innerHTML = '<span style="color:'+(d.ok?'var(--success)':'var(--danger)')+'">'+d.msg+'</span>';
+        if(d.ok) showToast('桌面图标已更新！删旧图标重新添加~');
+      }).catch(()=>{
+        msg.innerHTML = '<span style="color:var(--danger)">上传失败，请重试</span>';
+      });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function previewAvatar() {
+  const file = document.getElementById('avatarFile').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    data.avatar = e.target.result; save(); updateAvatar(); closeModal(); showToast('头像换好啦~');
+  };
+  reader.readAsDataURL(file);
+}
+function updateAvatar() {
+  const av = data.avatar || '🐾';
+  const logo = document.getElementById('drawerLogo');
+  const topbar = document.getElementById('topbarAvatar');
+  if (av.startsWith('data:')) {
+    logo.innerHTML = '<img src="'+av+'" style="width:100%;height:100%;object-fit:cover;">';
+    topbar.innerHTML = '<img src="'+av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+  } else {
+    logo.textContent = av;
+    topbar.textContent = av;
+  }
+}
+function editUsername() {
+  const name = prompt('请输入新名字：', data.username || '运营喵');
+  if (name && name.trim()) { data.username = name.trim(); save(); document.getElementById('drawerSub').textContent = name.trim() + ' 的工作台'; showToast('名字更新啦~'); }
+}
+function toggleDrawer() {
+  const d = document.getElementById('drawer');
+  const m = document.getElementById('drawerMask');
+  d.classList.toggle('open'); m.classList.toggle('open');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+function renderNav() {
+  const pending = data.todos.filter(t => !t.done && t.date === todayStr()).length;
+  document.getElementById('navList').innerHTML = NAV.map(n => `
+    <div class="nav-li ${currentView===n.view?'active':''}" data-view="${n.view}" onclick="switchView('${n.view}')">
+      <span class="ico-wrap" style="font-size:20px;">${n.emoji}</span>
+      <span class="txt">
+        <span class="lbl">${n.title}</span>
+        <span class="desc">${n.desc}</span>
+      </span>
+      ${n.view==='todo' && pending>0 ? `<span class="badge">${pending}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function switchView(view, id=null) {
+  currentView = view;
+  window.scrollTo(0,0);
+  renderNav();
+  const t = VIEW_TITLES[view] || '工作台';
+  const nav = NAV.find(n=>n.view===view);
+  document.getElementById('topbarTitle').innerHTML = `<h1>${t}</h1><p>${nav?.desc || '和小猫一起工作'}</p>`;
+  const main = document.getElementById('main');
+  switch(view) {
+    case 'home': main.innerHTML = renderHome(); break;
+    case 'todo': main.innerHTML = renderTodoView(); break;
+    case 'project': main.innerHTML = id ? renderProjectDetail(id) : renderProjectView(); break;
+    case 'material': main.innerHTML = id ? renderMaterialDetail(id) : renderMaterialView(); break;
+    case 'topic': main.innerHTML = id ? renderTopicDetail(id) : renderTopicView(); break;
+    case 'account': main.innerHTML = id ? renderAccountDetail(id) : renderAccountView(); break;
+    case 'report': main.innerHTML = id ? renderReportDetail(id) : renderReportView(); break;
+    case 'diet': main.innerHTML = id ? renderDietDetail(id) : renderDietView(); break;
+    case 'news': main.innerHTML = renderNewsView(); break;
+    case 'stock': main.innerHTML = id ? renderStockDetail(id) : renderStockView(); break;
+    case 'pomo': main.innerHTML = renderTomatoView(); break;
+    case 'schedule': main.innerHTML = id ? renderScheduleDetail(id) : renderScheduleView(); break;
+    default: main.innerHTML = renderHome();
+  }
+  updateFabMenu();
+}
+
+function renderHome() {
+  const t = todayStr();
+  const pending = data.todos.filter(x => !x.done && x.date === t).length;
+  const doneToday = data.todos.filter(x => x.done && x.date === t).length;
+  const progress = data.projects.filter(x => x.status === 'progress').length;
+  const topicCount = data.topics.length;
+  const matCount = data.materials.length;
+  const accCount = data.accounts.length;
+  const dietToday = data.diet.filter(x => x.date === t).reduce((a,b)=>a+(+b.kcal||0),0);
+  const pomoCount = data.pomoTotal || 0;
+  const stockCount = data.stocks.length;
+  const modules = [
+    { v:'todo',     cls:'m1', emoji:'✅', name:'待办',      desc:'今天还有 ' + pending + ' 件事' },
+    { v:'project',  cls:'m2', emoji:'📂', name:'项目',      desc:progress+' 个进行中' },
+    { v:'material', cls:'m3', emoji:'📚', name:'素材库',    desc:matCount+' 条灵感收藏' },
+    { v:'topic',    cls:'m4', emoji:'💡', name:'选题',      desc:topicCount+' 个待执行选题' },
+    { v:'account',  cls:'m5', emoji:'👥', name:'账号矩阵',  desc:accCount+' 个运营账号' },
+    { v:'report',   cls:'m6', emoji:'📊', name:'日报',      desc:'记录今日战果' },
+    { v:'diet',     cls:'m7', emoji:'🍱', name:'饮食记录',  desc:'今日已摄入 ' + dietToday + ' kcal' },
+    { v:'stock',    cls:'m8', emoji:'📈', name:'AI 股市',   desc:stockCount+' 条关注' },
+    { v:'news',     cls:'m9', emoji:'📰', name:'AI/科技',   desc:'每日精选' }
+  ];
+  const recentTodo = data.todos.filter(x => x.date === t).sort((a,b)=> (a.time||'').localeCompare(b.time||'')).slice(0,3);
+  return `
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-inner">
+        <div class="greet-tag"><span class="cat-paw">🐾</span>${greetText()}</div>
+        <h1>Hi 喵总 👋</h1>
+        <p class="greet" id="heroQuote">「${todayQuote().text}」<br><span style="font-size:11px;color:var(--text-dim);">— ${todayQuote().author} · ${todayQuote().cn}</span></p>
+        <div class="date-pill"><span class="dot"></span>${t.replace(/-/g,'/')} ${timeStr()}</div>
+      </div>
+      <img class="cat-img hero-cat-float" src="cats/c7.png" alt="">
+    </div>
+
+    <div class="section-label"><span class="cat-paw">🐾</span>运营概览</div>
+    <div class="stats-grid">
+      <div class="stat-card s1" onclick="switchView('todo')"><div class="ic">✅</div><div class="v">${pending}</div><div class="l">今日待办</div></div>
+      <div class="stat-card s2" onclick="switchView('project')"><div class="ic">📂</div><div class="v">${progress}</div><div class="l">进行中项目</div></div>
+      <div class="stat-card s3" onclick="switchView('material')"><div class="ic">📚</div><div class="v">${matCount}</div><div class="l">素材收藏</div></div>
+      <div class="stat-card s4" onclick="switchView('topic')"><div class="ic">💡</div><div class="v">${topicCount}</div><div class="l">选题灵感</div></div>
+    </div>
+
+    <div class="section-label"><span class="cat-paw">🐾</span>今日生活</div>
+    <div class="stats-grid">
+      <div class="stat-card s5" onclick="switchView('diet')"><div class="ic">🍱</div><div class="v">${dietToday}</div><div class="l">今日摄入 kcal</div></div>
+      <div class="stat-card s6" onclick="switchView('stock')"><div class="ic">📈</div><div class="v">${stockCount}</div><div class="l">AI 股关注</div></div>
+      <div class="stat-card s7" onclick="switchView('pomo')"><div class="ic">🍅</div><div class="v">${pomoCount}</div><div class="l">累计番茄</div></div>
+      <div class="stat-card s8" onclick="switchView('news')"><div class="ic">📰</div><div class="v">5</div><div class="l">科技动态</div></div>
+    </div>
+
+    <div class="section-label"><span class="cat-paw">🐾</span>快速入口</div>
+    <div class="modules-grid">
+      ${modules.map(m=>`
+      <div class="module-card ${m.cls}" onclick="switchView('${m.v}')">
+        <div class="module-icon-wrap" style="font-size:22px;">${m.emoji||"📌"}</div>
+        <div class="module-name">${m.name}</div>
+        <div class="module-desc">${m.desc}</div>
+        <span class="corner-cat" style="font-size:30px;opacity:0.2;" src="cats/${m.icon}.png" alt="">
+      </div>`).join('')}
+    </div>
+
+    <div class="section-title"><h2>🐾 今日任务</h2><span class="more" onclick="switchView('todo')">查看全部</span></div>
+    ${recentTodo.length ? recentTodo.map(todo => renderTodoItem(todo)).join('') : `
+      <div class="empty">
+        <span style="font-size:60px;">📰</span>
+        <h3>今天任务都完成啦</h3>
+        <p>小猫为你鼓掌，可以奖励自己一根小鱼干~</p>
+        <div class="cat-hint">点击右下角 + 添加新任务</div>
+      </div>
+    `}
+  `;
+}
+
+function renderTodoItem(todo) {
+  const p = getProject(todo.projectId);
+  return `
+    <div class="list-item" onclick="toggleTodo('${todo.id}', event)">
+      <span class="list-action" onclick="event.stopPropagation();toggleTodo('${todo.id}')">${todo.done?'恢复':'完成'}</span>
+      <div class="checkbox ${todo.done?'checked':''}" id="cb-${todo.id}">${todo.done?'✓':''}</div>
+      <div class="content">
+        <div class="title" style="${todo.done?'text-decoration:line-through;color:var(--text-dim)':''}">${escapeHtml(todo.title)}</div>
+        <div class="meta">${todo.time||'全天'} · ${p.name||'无项目'}</div>
+        <div class="def"><span class="tag tag-${todo.priority==='high'?'danger':todo.priority==='medium'?'warning':'success'}">${priorityLabel(todo.priority)}</span></div>
+      </div>
+    </div>
+  `;
+}
+function priorityLabel(p) { return p==='high'?'高优先级':p==='medium'?'中优先级':'低优先级'; }
+function toggleTodo(id, ev) {
+  if(ev) ev.stopPropagation();
+  const t = data.todos.find(x=>x.id===id);
+  if(t){ t.done = !t.done; save(); switchView('todo'); showToast(t.done?'完成啦，小猫给你点赞！':'任务恢复，继续加油~'); }
+}
+
+function renderTodoView() {
+  const t = todayStr();
+  const list = data.todos.filter(x => x.date === t).sort((a,b)=> (a.time||'').localeCompare(b.time||''));
+  const done = list.filter(x=>x.done);
+  const pending = list.filter(x=>!x.done);
+  return `
+    <div class="view-head">
+      <img src="cats/c7.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>今天的抓抓清单</h2><p>完成 ${done.length} 件，还剩 ${pending.length} 件 · 小猫陪你一起打勾</p></div>
+    </div>
+    ${pending.map(todo=>renderTodoItem(todo)).join('')}
+    ${done.length ? `<div class="section-title"><h2>已完成</h2></div>` + done.map(todo=>renderTodoItem(todo)).join('') : ''}
+    ${!list.length ? `
+      <div class="empty">
+        <span style="font-size:60px;">📰</span>
+        <h3>暂无今日任务</h3>
+        <p>休息一下吧，或者记录一件想做的事。</p>
+        <div class="cat-hint">右下角 + 添加任务</div>
+      </div>` : ''}
+  `;
+}
+
+function renderProjectView() {
+  const byStatus = { todo:[], progress:[], done:[] };
+  data.projects.forEach(p => { byStatus[p.status]?.push(p); });
+  return `
+    <div class="view-head">
+      <img src="cats/c6.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>项目大本营</h2><p>共 ${data.projects.length} 个项目 · 像猫一样专注一件事</p></div>
+    </div>
+    ${renderStatusGroup('待启动','todo',byStatus.todo,'cream')}
+    ${renderStatusGroup('进行中','progress',byStatus.progress,'warning')}
+    ${renderStatusGroup('已完成','done',byStatus.done,'success')}
+  `;
+}
+function renderStatusGroup(title, status, arr) {
+  if (!arr.length) return '';
+  const stLabel = status==='done'?'已完成':status==='progress'?'进行中':'待启动';
+  const stTag = status==='done'?'success':status==='progress'?'warning':'cream';
+  return `
+    <div class="section-title"><h2>${title}</h2></div>
+    ${arr.map(p=>`
+      <div class="card" onclick="switchView('project','${p.id}')">
+        <span class="card-action">查看</span>
+        <div class="card-title">${escapeHtml(p.name)}</div>
+        <div class="card-meta">${escapeHtml(p.goal||'目标未设定')} · 截止 ${fmtDate(p.deadline)}</div>
+        <div class="card-def"><span class="tag tag-${stTag}">${stLabel}</span>${p.note?' '+escapeHtml(p.note):''}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderProjectDetail(id) {
+  const p = getProject(id); if (!p.id) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>项目不见了喵</h3><p>这个项目可能被藏起来了</p></div>';
+  const s = getSubject(p.subjectId);
+  const todos = todosByProject(id);
+  const mats = materialsByProject(id);
+  const topics = topicsByProject(id);
+  const doneTodos = todos.filter(x => x.done).length;
+  const totalTodos = todos.length;
+  return `
+    <div class="detail-header">
+      
+      <button class="btn btn-ghost btn-sm" onclick="switchView('project')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${escapeHtml(p.name)}</h2>
+      <div style="margin-top:8px;">
+        <span class="tag tag-${p.status==='done'?'success':p.status==='progress'?'warning':'cream'}">${p.status==='done'?'已完成':p.status==='progress'?'进行中':'待启动'}</span>
+        ${s.name ? `<span class="tag tag-purple">${escapeHtml(s.name)}</span>` : ''}
+      </div>
+    </div>
+    <div class="card">
+      <div class="info-row"><span class="label">目标</span><span class="value">${escapeHtml(p.goal||'未设定')}</span></div>
+      <div class="info-row"><span class="label">截止日期</span><span class="value">${fmtDate(p.deadline)}</span></div>
+      ${p.note ? `<div class="info-row"><span class="label">备注</span><span class="value">${escapeHtml(p.note)}</span></div>` : ''}
+      ${totalTodos > 0 ? `<div style="margin-top:12px;"><div class="row-between" style="margin-bottom:5px;font-size:12px;color:var(--text-dim);"><span>任务进度</span><span>${doneTodos}/${totalTodos}</span></div><div class="progress-bar"><div style="width:${totalTodos?Math.round(doneTodos/totalTodos*100):0}%;"></div></div></div>` : ''}
+    </div>
+    ${totalTodos > 0 ? `<div class="detail-section"><h3>🐾 关联任务 (${totalTodos})</h3>${todos.map(t => renderTodoItem(t)).join('')}</div>` : ''}
+    ${mats.length > 0 ? `<div class="detail-section"><h3>📚 关联素材 (${mats.length})</h3>${mats.map(m => renderMaterialCard(m)).join('')}</div>` : ''}
+    ${topics.length > 0 ? `<div class="detail-section"><h3>💡 关联选题 (${topics.length})</h3>${topics.map(tp => renderTopicCard(tp)).join('')}</div>` : ''}
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('project','${p.id}')">编辑项目</button>
+      <button class="btn btn-ghost" onclick="deleteItem('projects','${p.id}')">删除</button>
+    </div>
+  `;
+}
+
+function renderMaterialView() {
+  const mats = data.materials || [];
+  return `
+    <div class="view-head">
+      <img src="cats/c3.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>素材小鱼干仓库</h2><p>共 ${mats.length} 条灵感收藏 · 每一条都是宝藏喵</p></div>
+    </div>
+    ${mats.length === 0 ? `
+      <div class="empty">
+        <span style="font-size:60px;">📰</span>
+        <h3>素材库空空的</h3>
+        <p>快去收藏一些灵感小鱼干吧~</p>
+        <div class="cat-hint">右下角 + 添加素材</div>
+      </div>` : mats.map(m => renderMaterialCard(m)).join('')}
+  `;
+}
+
+function renderMaterialCard(m) {
+  return `
+    <div class="list-item" onclick="switchView('material','${m.id}')">
+      <span class="list-action" onclick="event.stopPropagation();switchView('material','${m.id}')">查看</span>
+      <div class="icon-box" style="background:var(--cyan-soft);font-size:18px;">${m.type==='link'?'🔗':m.type==='text'?'📝':'🎬'}</div>
+      <div class="content">
+        <div class="title">${escapeHtml(m.title)}</div>
+        <div class="meta">${m.type==='link'?'链接':m.type==='text'?'文本':'其他'} · ${m.tags?m.tags.join(', '):'无标签'} · ${fmtDate(m.created)}</div>
+      </div>
+      <div class="side"><span class="tag tag-cyan">素材</span></div>
+    </div>
+  `;
+}
+
+function renderMaterialDetail(id) {
+  const m = getMaterial(id); if (!m.id) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>素材不见了喵</h3><p>这条素材可能被删掉了</p></div>';
+  const p = getProject(m.projectId);
+  const refTopics = (data.topics||[]).filter(t => t.sourceMaterialId === id);
+  return `
+    <div class="detail-header">
+      
+      <button class="btn btn-ghost btn-sm" onclick="switchView('material')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${escapeHtml(m.title)}</h2>
+      <div style="margin-top:8px;">
+        <span class="tag tag-cyan">${m.type==='link'?'链接':m.type==='text'?'文本':'其他'}</span>
+        ${m.tags ? m.tags.map(tg => `<span class="tag tag-dim">#${escapeHtml(tg)}</span>`).join('') : ''}
+      </div>
+    </div>
+    <div class="card">
+      ${m.type==='link' ? `<div class="info-row"><span class="label">链接</span><span class="value" style="word-break:break-all;">${escapeHtml(m.content)}</span></div>` : ''}
+      ${m.type==='text' ? `<div class="info-row"><span class="label">内容</span><span class="value" style="white-space:pre-wrap;">${escapeHtml(m.content)}</span></div>` : ''}
+      ${m.note ? `<div class="info-row"><span class="label">备注</span><span class="value">${escapeHtml(m.note)}</span></div>` : ''}
+      ${p.name ? `<div class="info-row"><span class="label">所属项目</span><span class="value"><span class="tag tag-purple">${escapeHtml(p.name)}</span></span></div>` : ''}
+      <div class="info-row"><span class="label">创建日期</span><span class="value">${fmtDate(m.created)}</span></div>
+    </div>
+    ${refTopics.length ? `<div class="detail-section"><h3>💡 已生成选题 (${refTopics.length})</h3>${refTopics.map(tp => renderTopicCard(tp)).join('')}</div>` : ''}
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('material','${m.id}')">编辑素材</button>
+      <button class="btn btn-ghost" onclick="materialToTopic('${m.id}')">一键转选题</button>
+      <button class="btn btn-danger" onclick="deleteItem('materials','${m.id}')">删除</button>
+    </div>
+  `;
+}
+
+function renderTopicView() {
+  const topics = data.topics || [];
+  return `
+    <div class="view-head">
+      <img src="cats/c1.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>选题灵感簿</h2><p>共 ${topics.length} 个选题 · 点子像猫毛一样多</p></div>
+    </div>
+    ${topics.length === 0 ? `
+      <div class="empty">
+        <span style="font-size:60px;">📈</span>
+        <h3>还没有选题呢</h3>
+        <p>可以从素材中一键生成，或者自己写一个~</p>
+        <div class="cat-hint">右下角 + 添加选题</div>
+      </div>` : topics.map(tp => renderTopicCard(tp)).join('')}
+  `;
+}
+
+function renderTopicCard(tp) {
+  const p = getProject(tp.projectId);
+  const statusLabel = tp.status==='idea'?'待执行':tp.status==='doing'?'执行中':'已完成';
+  const statusTag = tp.status==='idea'?'warning':tp.status==='doing'?'primary':'success';
+  return `
+    <div class="list-item" onclick="switchView('topic','${tp.id}')">
+      <div class="icon-box" style="background:var(--pink-soft);font-size:18px;">${tp.status==='idea'?'💡':tp.status==='doing'?'⚡':'✅'}</div>
+      <div class="content">
+        <div class="title">${escapeHtml(tp.title)}</div>
+        <div class="meta">${tp.angle||'未设定角度'} · ${p.name||'无项目'} · ${fmtDate(tp.created)}</div>
+      </div>
+      <div class="side"><span class="tag tag-${statusTag}">${statusLabel}</span></div>
+    </div>
+  `;
+}
+
+function renderTopicDetail(id) {
+  const tp = getTopic(id); if (!tp.id) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>选题不见了喵</h3><p>这个选题可能被删掉了</p></div>';
+  const p = getProject(tp.projectId);
+  const m = getMaterial(tp.sourceMaterialId);
+  const statusLabel = tp.status==='idea'?'待执行':tp.status==='doing'?'执行中':'已完成';
+  const statusTag = tp.status==='idea'?'warning':tp.status==='doing'?'primary':'success';
+  return `
+    <div class="detail-header">
+      
+      <button class="btn btn-ghost btn-sm" onclick="switchView('topic')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${escapeHtml(tp.title)}</h2>
+      <div style="margin-top:8px;">
+        <span class="tag tag-${statusTag}">${statusLabel}</span>
+        ${tp.template ? `<span class="tag tag-pink">${escapeHtml(tp.template)}</span>` : ''}
+      </div>
+    </div>
+    <div class="card">
+      ${tp.angle ? `<div class="info-row"><span class="label">切入角度</span><span class="value">${escapeHtml(tp.angle)}</span></div>` : ''}
+      ${p.name ? `<div class="info-row"><span class="label">所属项目</span><span class="value"><span class="tag tag-purple">${escapeHtml(p.name)}</span></span></div>` : ''}
+      ${m.id ? `<div class="info-row"><span class="label">来源素材</span><span class="value" style="cursor:pointer;color:var(--primary-dark);" onclick="switchView('material','${m.id}')">${escapeHtml(m.title)}</span></div>` : ''}
+      <div class="info-row"><span class="label">创建日期</span><span class="value">${fmtDate(tp.created)}</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('topic','${tp.id}')">编辑选题</button>
+      <button class="btn btn-danger" onclick="deleteItem('topics','${tp.id}')">删除</button>
+    </div>
+  `;
+}
+
+function renderAccountView() {
+  const accounts = data.accounts || [];
+  const subjects = data.subjects || [];
+  return `
+    <div class="view-head">
+      <img src="cats/c8.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>账号小窝</h2><p>共 ${accounts.length} 个运营账号 · 管好每个小猫咪</p></div>
+    </div>
+    ${subjects.map(s => {
+      const accs = accounts.filter(a => a.subjectId === s.id);
+      return `
+        <div class="card" style="margin-bottom:14px;">
+          <div class="row-between" style="margin-bottom:10px;">
+            <div style="font-weight:700;">${escapeHtml(s.name)}</div>
+            <span class="tag tag-purple">${accs.length} 个账号</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">${escapeHtml(s.desc||'')}</div>
+          ${accs.length === 0 ? '<div style="font-size:13px;color:var(--text-dim);">暂无账号</div>' :
+            accs.map(a => `
+              <span class="list-action" onclick="event.stopPropagation();switchView('account','${a.id}')">查看</span>
+                <div class="list-item" style="margin-bottom:6px;" onclick="switchView('account','${a.id}')">
+                <div class="icon-box" style="background:var(--purple-soft);font-size:18px;">${a.platform==='小红书'?'📕':a.platform==='抖音'?'🎵':a.platform==='公众号'?'📰':a.platform==='B站'?'📺':'👤'}</div>
+                <div class="content">
+                  <div class="title">${escapeHtml(a.name)}</div>
+                  <div class="meta">${a.platform} · ${a.fans ? (a.fans/1000).toFixed(1)+'k 粉丝' : '新账号'} · ${escapeHtml(a.note||'')}</div>
+                </div>
+                <div class="side"><span class="tag tag-${a.platform==='小红书'?'pink':a.platform==='抖音'?'cyan':a.platform==='公众号'?'primary':'purple'}">${a.platform}</span></div>
+              </div>
+            `).join('')}
+        </div>
+      `;
+    }).join('')}
+    ${!subjects.length ? `
+      <div class="empty">
+        <span style="font-size:60px;">👥</span>
+        <h3>还没有账号哦</h3>
+        <p>先创建一个运营主体，再添加账号吧~</p>
+        <div class="cat-hint">右下角 + 添加主体/账号</div>
+      </div>` : ''}
+  `;
+}
+
+function renderAccountDetail(id) {
+  const a = getAccount(id); if (!a.id) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>账号不见了喵</h3><p>这个账号可能被藏起来了</p></div>';
+  const s = getSubject(a.subjectId);
+  return `
+    <div class="detail-header">
+      
+      <button class="btn btn-ghost btn-sm" onclick="switchView('account')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${escapeHtml(a.name)}</h2>
+      <div style="margin-top:8px;">
+        <span class="tag tag-${a.platform==='小红书'?'pink':a.platform==='抖音'?'cyan':a.platform==='公众号'?'primary':'purple'}">${a.platform}</span>
+        ${s.name ? `<span class="tag tag-purple">${escapeHtml(s.name)}</span>` : ''}
+      </div>
+    </div>
+    <div class="card">
+      <div class="info-row"><span class="label">平台</span><span class="value">${escapeHtml(a.platform)}</span></div>
+      <div class="info-row"><span class="label">粉丝数</span><span class="value">${a.fans ? (a.fans/1000).toFixed(1)+'k' : '--'}</span></div>
+      <div class="info-row"><span class="label">备注</span><span class="value">${escapeHtml(a.note||'无')}</span></div>
+      ${s.name ? `<div class="info-row"><span class="label">所属主体</span><span class="value">${escapeHtml(s.name)}</span></div>` : ''}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('account','${a.id}')">编辑账号</button>
+      <button class="btn btn-danger" onclick="deleteItem('accounts','${a.id}')">删除</button>
+    </div>
+  `;
+}
+
+function renderReportView() {
+  const reports = data.reports || [];
+  const t = todayStr();
+  const todayReport = reports.find(r => r.date === t);
+  return `
+    <div class="view-head">
+      <img src="cats/c9.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>工作日报</h2><p>每天进步一点点 · 小猫陪你记录</p></div>
+    </div>
+    <div class="section-title">
+      <h2>${todayReport ? '今日日报' : '生成今日日报'}</h2>
+      ${!todayReport ? `<button class="btn btn-primary btn-sm" onclick="generateTodayReport()">一键生成</button>` : ''}
+    </div>
+    ${todayReport ? `
+      <div class="card">
+        <div style="font-weight:700;font-size:16px;margin-bottom:12px;">${t} 复盘日报</div>
+        ${todayReport.content ? `<div style="white-space:pre-wrap;line-height:1.65;">${escapeHtml(todayReport.content)}</div>` : '<div style="color:var(--text-dim);">暂无内容</div>'}
+        ${todayReport.metrics ? `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="tag tag-primary">阅读 ${todayReport.metrics.views||0}</span>
+          <span class="tag tag-pink">点赞 ${todayReport.metrics.likes||0}</span>
+          <span class="tag tag-cyan">评论 ${todayReport.metrics.comments||0}</span>
+        </div>` : ''}
+        <div style="margin-top:14px;"><button class="btn btn-ghost btn-sm" onclick="openModal('report','${todayReport.id}')">编辑日报</button></div>
+      </div>
+    ` : `
+      <div class="empty">
+        <span style="font-size:60px;">📊</span>
+        <h3>今日还没写日报</h3>
+        <p>点击"一键生成"自动汇总今天的任务和素材~</p>
+      </div>
+    `}
+    <div class="section-title"><h2>历史日报</h2></div>
+    ${reports.filter(r => r.date !== t).length === 0 ? '<div style="text-align:center;padding:20px;color:var(--text-dim);">暂无历史日报</div>' :
+      reports.filter(r => r.date !== t).sort((a,b) => b.date.localeCompare(a.date)).map(r => `
+        <div class="list-item" onclick="switchView('report','${r.id}')">
+          <div class="icon-box" style="background:var(--success-soft);"><span style="font-size:20px;">📊</span></div>
+          <div class="content">
+            <div class="title">${fmtDate(r.date)}</div>
+            <div class="meta">${escapeHtml((r.content||'').slice(0,50))}${(r.content||'').length>50?'...':''}</div>
+          </div>
+        </div>
+      `).join('')}
+  `;
+}
+
+function renderReportDetail(id) {
+  const r = getReport(id); if (!r.id) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>日报不见了喵</h3><p>这篇日报可能被删掉了</p></div>';
+  return `
+    <div class="detail-header">
+      
+      <button class="btn btn-ghost btn-sm" onclick="switchView('report')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${fmtDate(r.date)} 复盘日报</h2>
+    </div>
+    <div class="card">
+      ${r.content ? `<div style="white-space:pre-wrap;line-height:1.65;">${escapeHtml(r.content)}</div>` : '<div style="color:var(--text-dim);">暂无内容</div>'}
+      ${r.metrics ? `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="tag tag-primary">阅读 ${r.metrics.views||0}</span>
+        <span class="tag tag-pink">点赞 ${r.metrics.likes||0}</span>
+        <span class="tag tag-cyan">评论 ${r.metrics.comments||0}</span>
+      </div>` : ''}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('report','${r.id}')">编辑日报</button>
+      <button class="btn btn-danger" onclick="deleteItem('reports','${r.id}')">删除</button>
+    </div>
+  `;
+}
+
+function renderDietView() {
+  const t = todayStr();
+  const diet = getDiet();
+  const todayDiet = diet.filter(d => d.date === t);
+  const totalKcal = todayDiet.reduce((a,b) => a + (+b.kcal||0), 0);
+  const goal = data.dietGoal || 2000;
+  const pct = Math.min(Math.round(totalKcal / goal * 100), 100);
+  const isOver = totalKcal > goal;
+  const meals = ['早餐', '午餐', '下午茶', '晚餐', '夜宵'];
+  return `
+    <div class="view-head">
+      <img src="cats/c4.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>今天吃了什么？</h2><p>吃饱才有力气干活喵</p></div>
+    </div>
+    <div class="diet-total-card ${isOver?'over':''}">
+      <span style="font-size:48px;">🍱</span>
+      <div style="font-size:32px;font-weight:800;">${totalKcal} <span style="font-size:16px;font-weight:500;">kcal</span></div>
+      <div style="font-size:13px;color:var(--text-soft);margin-top:4px;">${isOver ? '超标啦！明天控制一下喵~' : '目标 ' + goal + ' kcal · 还剩 ' + (goal-totalKcal) + ' kcal'}</div>
+      <div class="progress-bar" style="margin-top:10px;"><div style="width:${pct}%;${isOver?'background:linear-gradient(90deg,var(--danger),var(--pink))':''}"></div></div>
+    </div>
+    ${meals.map(meal => {
+      const items = todayDiet.filter(d => d.meal === meal);
+      if (!items.length) return '';
+      return `
+        <div class="meal-card">
+          <h4>${meal === '早餐' ? '🌅' : meal === '午餐' ? '☀️' : meal === '下午茶' ? '🍪' : meal === '晚餐' ? '🌙' : '🌛'} ${meal}</h4>
+          ${items.map(d => `
+            <div class="diet-item" onclick="switchView('diet','${d.id}')">
+              <span class="emoji">${d.emoji||'🍽️'}</span>
+              <div class="info">
+                <div class="name">${escapeHtml(d.name)}</div>
+                <div class="time">${d.time||''} ${escapeHtml(d.note||'')}</div>
+              </div>
+              <div class="kcal">${d.kcal} kcal</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }).join('')}
+    ${todayDiet.length === 0 ? `
+      <div class="empty">
+        <span style="font-size:60px;">🍱</span>
+        <h3>今天还没记录饮食</h3>
+        <p>记录一下今天吃了什么吧~</p>
+        <div class="cat-hint">右下角 + 添加饮食记录</div>
+      </div>` : ''}
+  `;
+}
+
+function renderDietDetail(id) {
+  const d = findDiet(id); if (!d) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>记录不见了喵</h3><p>这条饮食记录可能被删掉了</p></div>';
+  return `
+    <div class="detail-header">
+      
+      <button class="btn btn-ghost btn-sm" onclick="switchView('diet')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${d.emoji||'🍽️'} ${escapeHtml(d.name)}</h2>
+    </div>
+    <div class="card">
+      <div class="info-row"><span class="label">餐次</span><span class="value">${escapeHtml(d.meal||'')}</span></div>
+      <div class="info-row"><span class="label">热量</span><span class="value" style="font-weight:700;color:var(--primary-dark);">${d.kcal} kcal</span></div>
+      <div class="info-row"><span class="label">时间</span><span class="value">${d.time||''}</span></div>
+      <div class="info-row"><span class="label">日期</span><span class="value">${fmtDate(d.date)}</span></div>
+      <div class="info-row"><span class="label">备注</span><span class="value">${escapeHtml(d.note||'无')}</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('diet','${d.id}')">编辑</button>
+      <button class="btn btn-danger" onclick="deleteItem('diet','${d.id}')">删除</button>
+    </div>
+  `;
+}
+
+function renderNewsView() {
+  const news = getTodayNews();
+  return `
+    <div class="news-head">
+      <img src="cats/c2.png" style="width:60px;height:60px;object-fit:contain;">
+      <h2 style="font-size:20px;font-weight:800;">今日科技动态</h2>
+      <p style="font-size:13px;color:var(--text-soft);margin-top:4px;">精选 5 条 AI/科技新闻 · 保持信息敏锐度喵</p>
+    </div>
+    ${news.map(n => `
+      <div class="news-item">
+        <div class="title">${escapeHtml(n.title)}</div>
+        <div class="tagline">${escapeHtml(n.tagline)}</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">${escapeHtml(n.source)} · ${escapeHtml(n.date)}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderStockView() {
+  const news = STOCK_NEWS;
+  return `
+    <div class="view-head">
+      <img src="cats/c0.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>AI 赛道快讯</h2><p>共 ${news.length} 条行情资讯 · 每日滚动更新</p></div>
+    </div>
+    ${news.map((n,i) => `
+      <div class="news-item" onclick="window.open('https://www.google.com/search?q='+encodeURIComponent('${escapeHtml(n.title).replace(/'/g,"\'")}'),'_blank')">
+        <div class="title">${escapeHtml(n.title)}</div>
+        <div class="tagline">${n.source} · ${n.date}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderStockView_oldzzz() {
+  const totalPnl = stocks.reduce((a,s) => a + ((+s.price||0) - (+s.cost||0)) * (+s.qty||0), 0);
+  const totalValue = stocks.reduce((a,s) => a + (+s.price||0) * (+s.qty||0), 0);
+  const totalCost = stocks.reduce((a,s) => a + (+s.cost||0) * (+s.qty||0), 0);
+  const pnlPct = totalCost > 0 ? ((totalValue - totalCost) / totalCost * 100).toFixed(2) : 0;
+  return `
+    <div class="view-head">
+      <span style="font-size:48px;">📈</span>
+      <div class="text"><h2>财运喵喵看板</h2><p>共 ${stocks.length} 只持仓 · 理性投资不冲动</p></div>
+    </div>
+    <div class="stock-summary">
+      <div class="box">
+        <span style="font-size:48px;">📈</span>
+        <div class="v" style="color:var(--primary-dark);">${totalValue.toLocaleString('zh-CN',{maximumFractionDigits:0})}</div>
+        <div class="l">持仓市值</div>
+      </div>
+      <div class="box">
+        <span style="font-size:48px;">📈</span>
+        <div class="v ${totalPnl>=0?'pnl-up':'pnl-down'}">${fmtMoney(totalPnl)}</div>
+        <div class="l">持仓盈亏 (${pnlPct>=0?'+':''}${pnlPct}%)</div>
+      </div>
+    </div>
+    ${stocks.length === 0 ? `
+      <div class="empty">
+        <span style="font-size:60px;">📈</span>
+        <h3>还没有持仓记录</h3>
+        <p>添加你的投资记录，小猫帮你算账~</p>
+        <div class="cat-hint">右下角 + 添加股票</div>
+      </div>` : stocks.map(s => {
+      const pnl = ((+s.price||0) - (+s.cost||0)) * (+s.qty||0);
+      const pnlP = (+s.cost||0) > 0 ? (((+s.price||0) - (+s.cost||0)) / (+s.cost||0) * 100).toFixed(2) : 0;
+      return `
+        <span class="stock-action" onclick="event.stopPropagation();switchView('stock','${s.id}')">查看</span>
+          <div class="stock-item" onclick="switchView('stock','${s.id}')">
+          <div>
+            <div class="name">${escapeHtml(s.name)}</div>
+            <div class="code">${escapeHtml(s.code)} · ${s.qty} 股</div>
+          </div>
+          <div class="pnl">
+            <div class="pnl-v">${(+s.price||0).toFixed(2)}</div>
+            <div class="pnl-p ${pnl>=0?'pnl-up':'pnl-down'}">${pnl>=0?'+':''}${pnlP}%</div>
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function renderTomatoView() {
+  const sessions = data.pomoTotal || 0;
+  return `
+    <div class="view-head">
+      <img src="cats/c5.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>番茄钟</h2><p>${sessions} 个番茄已完成 · 专注 25 分钟，休息 5 分钟</p></div>
+    </div>
+    <div class="card" style="text-align:center;padding:32px 20px;">
+      <div id="pomoDisplay" style="font-size:64px;font-weight:800;letter-spacing:2px;font-family:monospace;color:var(--text);margin:16px 0;">25:00</div>
+      <div id="pomoLabel" style="font-size:15px;color:var(--text-dim);margin-bottom:20px;">准备开始</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="pomoStart" onclick="pomoStart()" style="flex:0 0 auto;padding:12px 28px;">开始番茄</button>
+        <button class="btn btn-ghost" id="pomoPause" onclick="pomoPause()" style="flex:0 0 auto;padding:12px 28px;display:none;">暂停</button>
+        <button class="btn btn-ghost" onclick="pomoReset()" style="flex:0 0 auto;padding:12px 20px;">重置</button>
+      </div>
+      <div class="progress-bar" style="margin-top:20px;"><div id="pomoBar" style="width:0%;"></div></div>
+    </div>
+  `;
+}
+let pomoTimer=null,pomoRunning=false,pomoSeconds=25*60,pomoIsWork=true;
+function pomoTick(){
+  if(pomoSeconds<=0){
+    if(pomoIsWork){pomoSeconds=5*60;pomoIsWork=false;document.getElementById('pomoLabel').textContent='休息中 🐾';showToast('番茄完成！休息5分钟');}
+    else{pomoSeconds=25*60;pomoIsWork=true;document.getElementById('pomoLabel').textContent='专注中 🍅';data.pomoTotal=(data.pomoTotal||0)+1;save();switchView('pomo');return;}
+  }
+  const m=Math.floor(pomoSeconds/60),s=pomoSeconds%60;
+  document.getElementById('pomoDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  document.getElementById('pomoBar').style.width=((pomoIsWork?25*60:5*60-pomoSeconds)/(pomoIsWork?25*60:5*60)*100)+'%';
+  pomoSeconds--;
+}
+function pomoStart(){if(!pomoRunning){pomoRunning=true;pomoTimer=setInterval(pomoTick,1000);document.getElementById('pomoStart').style.display='none';document.getElementById('pomoPause').style.display='';document.getElementById('pomoLabel').textContent='专注中 🍅';}}
+function pomoPause(){pomoRunning=false;clearInterval(pomoTimer);document.getElementById('pomoStart').style.display='';document.getElementById('pomoPause').style.display='none';document.getElementById('pomoLabel').textContent='已暂停';}
+function pomoReset(){pomoRunning=false;clearInterval(pomoTimer);pomoSeconds=25*60;pomoIsWork=true;document.getElementById('pomoDisplay').textContent='25:00';document.getElementById('pomoBar').style.width='0%';document.getElementById('pomoLabel').textContent='准备开始';document.getElementById('pomoStart').style.display='';document.getElementById('pomoPause').style.display='none';}
+
+function renderScheduleView() {
+  const t = todayStr();
+  const list = (data.schedules||[]).filter(x => x.date === t).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+  return `
+    <div class="view-head">
+      <img src="cats/c11.png" style="width:60px;height:60px;object-fit:contain;">
+      <div class="text"><h2>今日日程</h2><p>${t.replace(/-/g,'/')} · 共 ${list.length} 项安排</p></div>
+    </div>
+    ${!list.length ? '<div class="empty"><span style="font-size:60px;">🐈</span><h3>今天还没有安排</h3><p>添加日程，让每一天都充实喵~</p></div>' : ''}
+    ${list.map(sc => `
+      <div class="list-item" onclick="openModal('schedule','${sc.id}')">
+        <span class="list-action" onclick="event.stopPropagation();openModal('schedule','${sc.id}')">编辑</span>
+        <div class="icon-box" style="background:var(--purple-soft);font-size:18px;">📅</div>
+        <div class="content">
+          <div class="title">${escapeHtml(sc.title)}</div>
+          <div class="meta">${sc.start||'--'} → ${sc.end||'--'}</div>
+          <div class="def">${escapeHtml(sc.note||'')}</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+function renderScheduleDetail(id) {
+  const sc = findSchedule(id); if(!sc) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>日程不见了喵</h3></div>';
+  return `
+    <div class="detail-header">
+      <button class="btn btn-ghost" onclick="switchView('schedule')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${escapeHtml(sc.title)}</h2>
+      <div class="card-meta" style="margin-top:8px;">${sc.start||'--'} → ${sc.end||'--'} · ${fmtDate(sc.date)}</div>
+    </div>
+    ${sc.note ? `<div class="card"><div class="card-def">${escapeHtml(sc.note)}</div></div>` : ''}
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('schedule','${sc.id}')">编辑</button>
+      <button class="btn btn-danger" onclick="deleteItem('schedules','${sc.id}')">删除</button>
+    </div>
+  `;
+}
+function renderScheduleForm(editId) {
+  const sc = editId ? findSchedule(editId) : {};
+  return `<div class="modal-head"><h2>${editId?'编辑日程':'新增日程'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+  <div class="form-group"><label>日程标题</label><input id="fSchTitle" value="${escapeHtml(sc.title||'')}" placeholder="要做什么？"></div>
+  <div class="form-row">
+    <div class="form-group"><label>开始</label><input id="fSchStart" type="time" value="${sc.start||'09:00'}"></div>
+    <div class="form-group"><label>结束</label><input id="fSchEnd" type="time" value="${sc.end||'10:00'}"></div>
+  </div>
+  <div class="form-group"><label>备注</label><textarea id="fSchNote" placeholder="补充说明">${escapeHtml(sc.note||'')}</textarea></div>
+  <div class="form-actions"><button class="btn btn-primary" onclick="saveSchedule('${editId||''}')">保存</button><button class="btn btn-ghost" onclick="closeModal()">取消</button></div>`;
+}
+function saveSchedule(editId) {
+  const title = document.getElementById('fSchTitle').value.trim();
+  if (!title) return showToast('请输入标题');
+  const item = { title, start: document.getElementById('fSchStart').value, end: document.getElementById('fSchEnd').value, note: document.getElementById('fSchNote').value.trim(), date: todayStr() };
+  if (editId) { const idx = data.schedules.findIndex(x => x.id === editId); if (idx >= 0) data.schedules[idx] = Object.assign(data.schedules[idx], item); }
+  else { item.id = uid(); data.schedules.push(item); }
+  save(); closeModal(); switchView('schedule'); showToast(editId ? '日程已更新' : '日程添加成功');
+}
+function renderTomatoForm() {
+  return `<div class="modal-head"><h2>番茄钟</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+  <div style="text-align:center;padding:30px 0;">
+    <div style="font-size:80px;margin-bottom:16px;">🍅</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:8px;">今天完成了 ${data.pomoTotal||0} 个番茄</div>
+    <p style="color:var(--text-dim);">25 分钟专注 + 5 分钟休息 = 1 个番茄</p>
+    <button class="btn btn-primary" onclick="closeModal();switchView('pomo')" style="margin-top:20px;">打开番茄钟</button>
+  </div>`;
+}
+
+function renderStockDetail(id) { return '<div class="empty"><span style="font-size:60px;">📈</span><h3>查看行情资讯</h3><p>点击左侧菜单「股市」查看最新动态</p><button class="btn btn-primary" onclick="switchView(\'stock\')" style="margin-top:14px;">返回股市</button></div>'; }
+function renderStockDetail_old(id) {
+  const s = findStock(id); if (!s) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>股票不见了喵</h3><p>这条记录可能被删掉了</p></div>';
+  const pnl = ((+s.price||0) - (+s.cost||0)) * (+s.qty||0);
+  const pnlP = (+s.cost||0) > 0 ? (((+s.price||0) - (+s.cost||0)) / (+s.cost||0) * 100).toFixed(2) : 0;
+  const value = (+s.price||0) * (+s.qty||0);
+  return `
+    <div class="detail-header">
+      
+      <button class="btn btn-ghost btn-sm" onclick="switchView('stock')" style="margin-bottom:14px;">← 返回</button>
+      <h2 style="font-size:20px;">${escapeHtml(s.name)}</h2>
+      <div style="margin-top:4px;font-size:14px;color:var(--text-dim);">${escapeHtml(s.code)}</div>
+    </div>
+    <div class="card">
+      <div class="info-row"><span class="label">当前价</span><span class="value" style="font-weight:700;">${(+s.price||0).toFixed(2)} ${s.currency||''}</span></div>
+      <div class="info-row"><span class="label">成本价</span><span class="value">${(+s.cost||0).toFixed(2)} ${s.currency||''}</span></div>
+      <div class="info-row"><span class="label">持仓数量</span><span class="value">${s.qty||0} 股</span></div>
+      <div class="info-row"><span class="label">持仓市值</span><span class="value" style="font-weight:700;">${value.toLocaleString('zh-CN',{maximumFractionDigits:0})} ${s.currency||''}</span></div>
+      <div class="info-row"><span class="label">盈亏</span><span class="value ${pnl>=0?'pnl-up':'pnl-down'}" style="font-weight:700;">${fmtMoney(pnl)} (${pnlP>=0?'+':''}${pnlP}%)</span></div>
+      <div class="info-row"><span class="label">备注</span><span class="value">${escapeHtml(s.note||'无')}</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="openModal('stock','${s.id}')">编辑</button>
+      <button class="btn btn-danger" onclick="deleteItem('stocks','${s.id}')">删除</button>
+    </div>
+  `;
+}
+
+// ==================== AI 爆款模板 ====================
+const AI_TEMPLATES = [
+  {
+    name: '反差法',
+    keywords: ['反转', '没想到', '居然', '反差', '颠覆', '震撼'],
+    outline: '开头建立认知 → 中间用数据/事实制造反转 → 结尾给方法论/工具',
+    hook: '【钩子】开头用"你一定以为...其实..."句式制造认知冲突，让观众产生"我倒要看看"的期待'
+  },
+  {
+    name: '数字法',
+    keywords: ['排名', '数据', '对比', '评测', '统计', 'top', '榜单'],
+    outline: '开篇抛出数字结论 → 中间逐一拆解/对比 → 结尾给总结建议',
+    hook: '【钩子】标题必带具体数字+收益承诺，如"3个工具让效率翻倍"，避免空泛形容'
+  },
+  {
+    name: '痛点法',
+    keywords: ['烦恼', '困扰', '崩溃', '无奈', '救星', '告别', '再也不'],
+    outline: '开头精准描绘痛点场景 → 中间给出具体解决方案 → 结尾展示效果+引导互动',
+    hook: '【钩子】开头用"你是不是也..."句式直击痛点，3秒内让观众对号入座，建立"这内容跟我有关"的认知'
+  },
+  {
+    name: '场景法',
+    keywords: ['早上', '加班', '出差', '周末', '宿舍', '办公室', '地铁'],
+    outline: '开场建立具体场景 → 引入产品/观点作为场景解法 → 结尾给行动建议',
+    hook: '【钩子】用"当你在XX场景..."句式打开画面感，让观众自动带入自己，场景越具体共鸣越强'
+  },
+  {
+    name: '对比法',
+    keywords: ['vs', '对比', '哪个', '区别', '优劣', '选谁'],
+    outline: '开篇抛出对比对象 → 中间用统一维度逐一对比 → 结尾给出明确结论+适用建议',
+    hook: '【钩子】标题用"A vs B：到底选哪个"引发选择焦虑，正文用评分卡/表格增强专业感'
+  },
+  {
+    name: '情绪法',
+    keywords: ['治愈', '温暖', '感动', '扎心', '破防', '泪目', '回忆'],
+    outline: '开头用细节场景引发共鸣 → 中段放大情绪+转折 → 结尾给出治愈性观点或行动建议',
+    hook: '【钩子】用"我也曾/我也有过"句式建立共情，具体细节比抽象描述更有感染力，结尾必须有治愈点'
+  }
+];
+
+// ==================== AI 科技新闻 ====================
+const NEWS_DATA = [
+  { title: 'OpenAI 发布 GPT-5：多模态能力再突破，推理速度提升 3 倍', tagline: '新模型在数学、编程和创意写作上全面超越前代，API 价格降低 40%', source: 'TechCrunch', date: '2026-07-26' },
+  { title: 'Apple 推出 AI 驱动的 iOS 20：Siri 全面升级，支持多轮复杂对话', tagline: '新版 Siri 可跨应用执行任务，隐私保护依然是最核心卖点', source: 'The Verge', date: '2026-07-26' },
+  { title: 'AI 视频生成赛道白热化：Runway、Pika、Sora 三足鼎立', tagline: '三家平台先后发布重大更新，视频生成质量和可控性显著提升', source: 'Wired', date: '2026-07-25' },
+  { title: '微软发布 Copilot Studio 2.0：企业可自定义 AI 工作流', tagline: '低代码平台让非技术人员也能搭建 AI Agent，企业级 AI 加速落地', source: 'Microsoft Blog', date: '2026-07-25' },
+  { title: 'Google DeepMind 发布 AlphaFold 4：蛋白质设计进入新时代', tagline: '新版本不仅预测结构，还能设计全新蛋白质，加速药物研发', source: 'Nature', date: '2026-07-24' },
+  { title: 'AI 搜索大战升级：Perplexity 估值突破 200 亿美元', tagline: 'AI 原生搜索正在蚕食 Google 份额，用户习惯从"搜结果"转向"要答案"', source: 'Bloomberg', date: '2026-07-24' },
+  { title: '国内大模型进入"应用爆发期"：日均 API 调用量突破百亿', tagline: '文心一言、通义千问、混元等模型在办公、教育、营销场景大规模落地', source: '36氪', date: '2026-07-23' },
+  { title: 'AI 硬件新物种：Rabbit R2 销量超预期，口袋 AI 助手成趋势', tagline: 'LAM（大型行动模型）概念走红，AI 从"对话"走向"执行"', source: 'Engadget', date: '2026-07-23' },
+  { title: 'Stable Diffusion 4 开源：图像生成质量飞跃，支持实时渲染', tagline: '新版本在文字渲染和手部细节上有显著改善，开源社区反响热烈', source: 'Stability AI', date: '2026-07-22' },
+  { title: 'AI 监管里程碑：欧盟 AI 法案全面实施，高风险应用需合规认证', tagline: '法案覆盖 AI 在医疗、招聘、司法等场景的应用，中国也在加速立法', source: 'Reuters', date: '2026-07-22' }
+];
+
+function getTodayNews() {
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
+  const indices = [];
+  while (indices.length < 5) {
+    const idx = (seed + indices.length * 7) % NEWS_DATA.length;
+    if (!indices.includes(idx)) indices.push(idx);
+  }
+  return indices.map(i => NEWS_DATA[i]);
+}
+
+function materialToTopic(matId) {
+  const m = getMaterial(matId);
+  if (!m.id) { showToast('素材不存在喵'); return; }
+  const title = (m.title||'').toLowerCase();
+  let matched = AI_TEMPLATES[Math.floor(Math.random() * AI_TEMPLATES.length)];
+  for (const tpl of AI_TEMPLATES) {
+    for (const kw of tpl.keywords) {
+      if (title.includes(kw.toLowerCase())) { matched = tpl; break; }
+    }
+  }
+  const newTopic = {
+    id: uid(),
+    projectId: m.projectId || '',
+    title: '选题：' + m.title,
+    sourceMaterialId: matId,
+    template: matched.name,
+    angle: matched.outline,
+    status: 'idea',
+    created: todayStr()
+  };
+  if (!data.topics) data.topics = [];
+  data.topics.push(newTopic);
+  save();
+  showToast('已从素材生成选题！模板：' + matched.name);
+  switchView('topic');
+}
+
+function generateTodayReport() {
+  const t = todayStr();
+  const todos = data.todos || [];
+  const mats = data.materials || [];
+  const topics = data.topics || [];
+  const todayTodos = todos.filter(x => x.date === t);
+  const doneTodos = todayTodos.filter(x => x.done);
+  const undoneTodos = todayTodos.filter(x => !x.done);
+  const todayMats = mats.filter(m => m.created === t);
+  const todayTopics = topics.filter(tp => tp.created === t);
+  let content = '';
+  content += '【今日完成任务】\\n';
+  content += doneTodos.length ? doneTodos.map(x => '• ' + x.title).join('\\n') : '今日无完成任务';
+  content += '\\n\\n【未完成事项】\\n';
+  content += undoneTodos.length ? undoneTodos.map(x => '• ' + x.title).join('\\n') : '今日事项全部完成';
+  content += '\\n\\n【新增素材】\\n';
+  content += todayMats.length ? todayMats.map(m => '• ' + m.title).join('\\n') : '今日无新增素材';
+  content += '\\n\\n【新增选题】\\n';
+  content += todayTopics.length ? todayTopics.map(tp => '• ' + tp.title).join('\\n') : '今日无新增选题';
+  content += '\\n\\n【明日计划】\\n';
+  content += undoneTodos.length ? undoneTodos.map(x => '• 推进 ' + x.title).join('\\n') : '继续推进各项目内容产出';
+  const report = {
+    id: uid(),
+    date: t,
+    content: content,
+    metrics: { views: 0, likes: 0, comments: 0 }
+  };
+  if (!data.reports) data.reports = [];
+  data.reports.push(report);
+  save();
+  showToast('日报已生成喵~ 可继续编辑补充');
+  switchView('report');
+}
+
+// ==================== 弹层与表单 ====================
+function toggleFabMenu() {
+  const menu = document.getElementById('fabMenu');
+  const btn = document.getElementById('fabBtn');
+  menu.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+function closeFabMenu() {
+  const menu = document.getElementById('fabMenu');
+  const btn = document.getElementById('fabBtn');
+  menu.classList.remove('open');
+  btn.classList.remove('open');
+}
+
+function updateFabMenu() {
+  const menu = document.getElementById('fabMenu');
+  const items = [];
+  if (currentView === 'todo') {
+    items.push({ icon: '✅', label: '添加任务', view: 'todo', cls: 'var(--success-soft)' });
+  }
+  if (currentView === 'project') {
+    items.push({ icon: '📂', label: '添加项目', view: 'project', cls: 'var(--purple-soft)' });
+  }
+  if (currentView === 'material') {
+    items.push({ icon: '📚', label: '添加素材', view: 'material', cls: 'var(--cyan-soft)' });
+  }
+  if (currentView === 'topic') {
+    items.push({ icon: '💡', label: '添加选题', view: 'topic', cls: 'var(--pink-soft)' });
+  }
+  if (currentView === 'diet') {
+    items.push({ icon: '🍱', label: '添加饮食', view: 'diet', cls: 'var(--orange-soft)' });
+  }
+  if (currentView === 'stock') {
+    items.push({ icon: '📈', label: '添加股票', view: 'stock', cls: 'var(--danger-soft)' });
+  }
+  if (currentView === 'report') {
+    items.push({ icon: '📊', label: '写日报', view: 'report', cls: 'var(--success-soft)' });
+  }
+  if (currentView === 'home') {
+    items.push({ icon: '✅', label: '添加任务', view: 'todo', cls: 'var(--success-soft)' });
+    items.push({ icon: '📂', label: '添加项目', view: 'project', cls: 'var(--purple-soft)' });
+    items.push({ icon: '📚', label: '添加素材', view: 'material', cls: 'var(--cyan-soft)' });
+    items.push({ icon: '🍱', label: '添加饮食', view: 'diet', cls: 'var(--orange-soft)' });
+  }
+  menu.innerHTML = items.map(i => `
+    <div class="fab-menu-item" onclick="closeFabMenu();openModal('${i.view}')">
+      <span class="ic" style="background:${i.cls};color:var(--text);">${i.icon}</span>${i.label}
+    </div>
+  `).join('');
+}
+
+function openModal(type, editId) {
+  const modal = document.getElementById('modal');
+  const panel = document.getElementById('modalPanel');
+  closeFabMenu();
+  panel.innerHTML = renderModal(type, editId);
+  modal.classList.add('open');
+}
+function closeModal(ev) {
+  if (ev && ev.target !== document.getElementById('modal')) return;
+  document.getElementById('modal').classList.remove('open');
+}
+
+function renderModal(type, editId) {
+  switch (type) {
+    case 'todo': return renderTodoForm(editId);
+    case 'project': return renderProjectForm(editId);
+    case 'material': return renderMaterialForm(editId);
+    case 'topic': return renderTopicForm(editId);
+    case 'account': return renderAccountForm(editId);
+    case 'report': return renderReportForm(editId);
+    case 'diet': return renderDietForm(editId);
+    case 'stock': return renderStockForm(editId);
+    case 'schedule': return renderScheduleForm(editId);
+    case 'pomo': return renderTomatoForm();
+    case 'search': return renderSearchModal();
+    default: return '';
+  }
+}
+
+function renderTodoForm(editId) {
+  const t = editId ? data.todos.find(x=>x.id===editId) : {};
+  const projects = data.projects || [];
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑任务':'添加新任务'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveTodo(event,'${editId||''}');return false;">
+      <div class="form-group"><label>任务标题</label><input name="title" required value="${escapeHtml(t.title||'')}" placeholder="要做什么呢？"></div>
+      <div class="form-row">
+        <div class="form-group"><label>时间</label><input name="time" type="time" value="${t.time||'09:00'}"></div>
+        <div class="form-group"><label>优先级</label><select name="priority">
+          <option value="high" ${t.priority==='high'?'selected':''}>高</option>
+          <option value="medium" ${t.priority==='medium'?'selected':''}>中</option>
+          <option value="low" ${t.priority==='low'?'selected':''}>低</option>
+        </select></div>
+      </div>
+      <div class="form-group"><label>关联项目</label><select name="projectId">
+        <option value="">无</option>
+        ${projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>日期</label><input name="date" type="date" value="${t.date||todayStr()}"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function saveTodo(e, editId) {
+  const fd = new FormData(e.target);
+  const obj = { title: fd.get('title'), time: fd.get('time'), priority: fd.get('priority'), projectId: fd.get('projectId'), date: fd.get('date') };
+  if (editId) { const t = data.todos.find(x=>x.id===editId); if(t) Object.assign(t, obj); }
+  else { data.todos.push({ id: uid(), ...obj, done: false }); }
+  save(); closeModal(); switchView('todo'); showToast('任务已保存喵~');
+}
+
+function renderProjectForm(editId) {
+  const p = editId ? getProject(editId) : {};
+  const subjects = data.subjects || [];
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑项目':'新建项目'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveProject(event,'${editId||''}');return false;">
+      <div class="form-group"><label>项目名称</label><input name="name" required value="${escapeHtml(p.name||'')}" placeholder="项目叫什么？"></div>
+      <div class="form-group"><label>所属主体</label><select name="subjectId">
+        ${subjects.map(s=>`<option value="${s.id}" ${p.subjectId===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>目标</label><input name="goal" value="${escapeHtml(p.goal||'')}" placeholder="项目目标"></div>
+      <div class="form-row">
+        <div class="form-group"><label>截止日期</label><input name="deadline" type="date" value="${p.deadline||''}"></div>
+        <div class="form-group"><label>状态</label><select name="status">
+          <option value="todo" ${p.status==='todo'?'selected':''}>待启动</option>
+          <option value="progress" ${p.status==='progress'?'selected':''}>进行中</option>
+          <option value="done" ${p.status==='done'?'selected':''}>已完成</option>
+        </select></div>
+      </div>
+      <div class="form-group"><label>备注</label><textarea name="note">${escapeHtml(p.note||'')}</textarea></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function saveProject(e, editId) {
+  const fd = new FormData(e.target);
+  const obj = { name: fd.get('name'), subjectId: fd.get('subjectId'), goal: fd.get('goal'), deadline: fd.get('deadline'), status: fd.get('status'), note: fd.get('note') };
+  if (editId) { const p = data.projects.find(x=>x.id===editId); if(p) Object.assign(p, obj); }
+  else { data.projects.push({ id: uid(), ...obj }); }
+  save(); closeModal(); switchView('project'); showToast('项目已保存喵~');
+}
+
+function renderMaterialForm(editId) {
+  const m = editId ? getMaterial(editId) : {};
+  const projects = data.projects || [];
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑素材':'收藏素材'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveMaterial(event,'${editId||''}');return false;">
+      <div class="form-group"><label>标题</label><input name="title" required value="${escapeHtml(m.title||'')}" placeholder="素材标题"></div>
+      <div class="form-group"><label>类型</label><select name="type">
+        <option value="link" ${m.type==='link'?'selected':''}>链接</option>
+        <option value="text" ${m.type==='text'?'selected':''}>文本</option>
+      </select></div>
+      <div class="form-group"><label>内容 / 链接</label><textarea name="content" oninput="autoDetectPlatform()">${escapeHtml(m.content||'')}</textarea></div>
+      <div id="autoDetectResult" style="display:none;padding:8px 12px;margin-bottom:10px;border-radius:12px;background:var(--success-soft);font-size:13px;color:var(--success);font-weight:600;"></div>
+      <div class="form-group"><label>关联项目</label><select name="projectId">
+        <option value="">无</option>
+        ${projects.map(p=>`<option value="${p.id}" ${m.projectId===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>标签（逗号分隔）</label><input name="tags" value="${(m.tags||[]).join(',')}" placeholder="如：文案,工具,爆款"></div>
+      <div class="form-group"><label>备注</label><input name="note" value="${escapeHtml(m.note||'')}"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function detectPlatform(url) {
+  if (!url) return '';
+  const u = url.toLowerCase();
+  if (u.includes('xiaohongshu.com')||u.includes('xhslink.com')) return '小红书';
+  if (u.includes('douyin.com')||u.includes('tiktok.com')) return '抖音';
+  if (u.includes('bilibili.com')||u.includes('b23.tv')) return 'B站';
+  if (u.includes('zhihu.com')) return '知乎';
+  if (u.includes('mp.weixin')||u.includes('weixin.qq.com')) return '公众号';
+  if (u.includes('youtube.com')||u.includes('youtu.be')) return 'YouTube';
+  if (u.includes('weibo.com')) return '微博';
+  if (u.includes('x.com')||u.includes('twitter.com')) return 'X/Twitter';
+  return url.match(/^(https?:\/\/)?[\w.-]+\.\w+/)?.[0] || '';
+}
+function autoDetectPlatform() {
+  const ta = document.querySelector('[name="content"]');
+  if (!ta) return;
+  const url = ta.value.trim();
+  const pf = detectPlatform(url);
+  const el = document.getElementById('autoDetectResult');
+  if (!el) return;
+  if (pf) {
+    el.style.display = 'block';
+    el.textContent = '🔍 检测到：' + pf + ' — 已自动匹配对应赛道';
+    const titleInput = document.querySelector('[name="title"]');
+    if (titleInput && !titleInput.value && url.startsWith('http')) {
+      try { titleInput.value = new URL(url).pathname.split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ').slice(0,30) || ''; } catch(e){}
+    }
+  } else {
+    el.style.display = 'none';
+  }
+}
+function saveMaterial(e, editId) {
+  const fd = new FormData(e.target);
+  const tags = (fd.get('tags')||'').split(/[,，]/).map(s=>s.trim()).filter(Boolean);
+  const obj = { title: fd.get('title'), type: fd.get('type'), content: fd.get('content'), projectId: fd.get('projectId'), tags, note: fd.get('note') };
+  if (editId) { const m = data.materials.find(x=>x.id===editId); if(m) Object.assign(m, obj); }
+  else { data.materials.push({ id: uid(), ...obj, created: todayStr() }); }
+  save(); closeModal(); switchView('material'); showToast('素材已保存喵~');
+}
+
+function renderTopicForm(editId) {
+  const tp = editId ? getTopic(editId) : {};
+  const projects = data.projects || [];
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑选题':'新建选题'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveTopic(event,'${editId||''}');return false;">
+      <div class="form-group"><label>选题标题</label><input name="title" required value="${escapeHtml(tp.title||'')}" placeholder="选题标题"></div>
+      <div class="form-group"><label>切入角度</label><input name="angle" value="${escapeHtml(tp.angle||'')}" placeholder="从什么角度切入？"></div>
+      <div class="form-group"><label>关联项目</label><select name="projectId">
+        <option value="">无</option>
+        ${projects.map(p=>`<option value="${p.id}" ${tp.projectId===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>来源素材</label><select name="sourceMaterialId">
+        <option value="">无</option>
+        ${(data.materials||[]).map(m=>`<option value="${m.id}" ${tp.sourceMaterialId===m.id?'selected':''}>${escapeHtml(m.title)}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>状态</label><select name="status">
+        <option value="idea" ${tp.status==='idea'?'selected':''}>待执行</option>
+        <option value="doing" ${tp.status==='doing'?'selected':''}>执行中</option>
+        <option value="done" ${tp.status==='done'?'selected':''}>已完成</option>
+      </select></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function saveTopic(e, editId) {
+  const fd = new FormData(e.target);
+  const obj = { title: fd.get('title'), angle: fd.get('angle'), projectId: fd.get('projectId'), sourceMaterialId: fd.get('sourceMaterialId'), status: fd.get('status') };
+  if (editId) { const tp = data.topics.find(x=>x.id===editId); if(tp) Object.assign(tp, obj); }
+  else { data.topics.push({ id: uid(), ...obj, created: todayStr() }); }
+  save(); closeModal(); switchView('topic'); showToast('选题已保存喵~');
+}
+
+function renderAccountForm(editId) {
+  const a = editId ? getAccount(editId) : {};
+  const subjects = data.subjects || [];
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑账号':'添加账号'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveAccount(event,'${editId||''}');return false;">
+      <div class="form-group"><label>账号名称</label><input name="name" required value="${escapeHtml(a.name||'')}" placeholder="如：@小喵日常"></div>
+      <div class="form-group"><label>所属主体</label><select name="subjectId">
+        ${subjects.map(s=>`<option value="${s.id}" ${a.subjectId===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>平台</label><select name="platform">
+        <option value="小红书" ${a.platform==='小红书'?'selected':''}>小红书</option>
+        <option value="抖音" ${a.platform==='抖音'?'selected':''}>抖音</option>
+        <option value="公众号" ${a.platform==='公众号'?'selected':''}>公众号</option>
+        <option value="视频号" ${a.platform==='视频号'?'selected':''}>视频号</option>
+        <option value="B站" ${a.platform==='B站'?'selected':''}>B站</option>
+      </select></div>
+      <div class="form-row">
+        <div class="form-group"><label>粉丝数</label><input name="fans" type="number" value="${a.fans||0}"></div>
+        <div class="form-group"><label>备注</label><input name="note" value="${escapeHtml(a.note||'')}"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function saveAccount(e, editId) {
+  const fd = new FormData(e.target);
+  const obj = { name: fd.get('name'), subjectId: fd.get('subjectId'), platform: fd.get('platform'), fans: +fd.get('fans'), note: fd.get('note') };
+  if (editId) { const a = data.accounts.find(x=>x.id===editId); if(a) Object.assign(a, obj); }
+  else { data.accounts.push({ id: uid(), ...obj }); }
+  save(); closeModal(); switchView('account'); showToast('账号已保存喵~');
+}
+
+function renderReportForm(editId) {
+  const r = editId ? getReport(editId) : {};
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑日报':'写日报'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveReport(event,'${editId||''}');return false;">
+      <div class="form-group"><label>日期</label><input name="date" type="date" required value="${r.date||todayStr()}"></div>
+      <div class="form-group"><label>内容</label><textarea name="content" style="min-height:180px;">${escapeHtml(r.content||'')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>阅读量</label><input name="views" type="number" value="${(r.metrics||{}).views||0}"></div>
+        <div class="form-group"><label>点赞</label><input name="likes" type="number" value="${(r.metrics||{}).likes||0}"></div>
+        <div class="form-group"><label>评论</label><input name="comments" type="number" value="${(r.metrics||{}).comments||0}"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function saveReport(e, editId) {
+  const fd = new FormData(e.target);
+  const obj = { date: fd.get('date'), content: fd.get('content'), metrics: { views: +fd.get('views'), likes: +fd.get('likes'), comments: +fd.get('comments') } };
+  if (editId) { const r = data.reports.find(x=>x.id===editId); if(r) Object.assign(r, obj); }
+  else { data.reports.push({ id: uid(), ...obj }); }
+  save(); closeModal(); switchView('report'); showToast('日报已保存喵~');
+}
+
+function renderDietForm(editId) {
+  const d = editId ? findDiet(editId) : {};
+  const meals = ['早餐', '午餐', '下午茶', '晚餐', '夜宵'];
+  const emojis = { '早餐':'🌅', '午餐':'☀️', '下午茶':'🍪', '晚餐':'🌙', '夜宵':'🌛' };
+  const foodEmojis = ['🍚','🍜','🍕','🥗','🍰','🧋','☕','🥩','🍗','🍟','🥟','🍱','🥘','🍳','🥐','🍎'];
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑饮食':'记录饮食'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveDiet(event,'${editId||''}');return false;">
+      <div class="form-group"><label>食物名称</label><input name="name" required value="${escapeHtml(d.name||'')}" placeholder="吃了什么？"></div>
+      <div class="form-row">
+        <div class="form-group"><label>餐次</label><select name="meal">
+          ${meals.map(m=>`<option value="${m}" ${d.meal===m?'selected':''}>${emojis[m]} ${m}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>热量 (kcal)</label><input name="kcal" type="number" value="${d.kcal||''}" placeholder="约"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>表情</label><select name="emoji">
+          ${foodEmojis.map(e=>`<option value="${e}" ${d.emoji===e?'selected':''}>${e}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>时间</label><input name="time" type="time" value="${d.time||timeStr()}"></div>
+      </div>
+      <div class="form-group"><label>备注</label><input name="note" value="${escapeHtml(d.note||'')}" placeholder="少糖/多加辣..."></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function saveDiet(e, editId) {
+  const fd = new FormData(e.target);
+  const obj = { name: fd.get('name'), meal: fd.get('meal'), kcal: +fd.get('kcal'), emoji: fd.get('emoji'), time: fd.get('time'), note: fd.get('note') };
+  if (editId) { const d = findDiet(editId); if(d) Object.assign(d, obj); }
+  else { data.diet.push({ id: uid(), ...obj, date: todayStr() }); }
+  save(); closeModal(); switchView('diet'); showToast('饮食记录已保存喵~');
+}
+
+function renderStockForm(editId) {
+  const s = editId ? findStock(editId) : {};
+  return `<div class="modal-head"><h2>${editId?'编辑':'添加关注'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+  <div class="form-group"><label>名称</label><input id="fStName" value="${escapeHtml(s.name||'')}" placeholder="如：英伟达 (NVDA)"></div>
+  <div class="form-row">
+    <div class="form-group"><label>当前价 $</label><input id="fStPrice" value="${s.price||''}" placeholder="138.0"></div>
+    <div class="form-group"><label>涨跌幅</label><input id="fStChange" value="${s.change||''}" placeholder="+6.2%"></div>
+  </div>
+  <div class="form-group"><label>备注</label><input id="fStNote" value="${escapeHtml(s.note||'')}" placeholder="一句话标签"></div>
+  <div class="form-actions"><button class="btn btn-primary" onclick="saveStock('${editId||''}')">保存</button><button class="btn btn-ghost" onclick="closeModal()">取消</button></div>`;
+}
+function renderStockForm_old(editId) {
+  const s = editId ? findStock(editId) : {};
+  return `
+    <div class="modal-head">
+      <h2>${editId?'编辑股票':'添加股票'}</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="saveStock(event,'${editId||''}');return false;">
+      <div class="form-row">
+        <div class="form-group"><label>股票名称</label><input name="name" required value="${escapeHtml(s.name||'')}" placeholder="如：腾讯控股"></div>
+        <div class="form-group"><label>代码</label><input name="code" value="${escapeHtml(s.code||'')}" placeholder="如：00700.HK"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>成本价</label><input name="cost" type="number" step="0.01" value="${s.cost||''}"></div>
+        <div class="form-group"><label>当前价</label><input name="price" type="number" step="0.01" value="${s.price||''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>持仓数量</label><input name="qty" type="number" value="${s.qty||''}"></div>
+        <div class="form-group"><label>币种</label><select name="currency">
+          <option value="HKD" ${s.currency==='HKD'?'selected':''}>HKD</option>
+          <option value="USD" ${s.currency==='USD'?'selected':''}>USD</option>
+          <option value="CNY" ${s.currency==='CNY'?'selected':''}>CNY</option>
+        </select></div>
+      </div>
+      <div class="form-group"><label>备注</label><input name="note" value="${escapeHtml(s.note||'')}" placeholder="投资理由..."></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  `;
+}
+function saveStock(e, editId) {
+  const fd = new FormData(e.target);
+  const obj = { name: fd.get('name'), code: fd.get('code'), cost: +fd.get('cost'), price: +fd.get('price'), qty: +fd.get('qty'), currency: fd.get('currency'), note: fd.get('note') };
+  if (editId) { const s = findStock(editId); if(s) Object.assign(s, obj); }
+  else { data.stocks.push({ id: uid(), ...obj }); }
+  save(); closeModal(); switchView('stock'); showToast('股票已保存喵~');
+}
+
+function renderSearchModal() {
+  return `
+    <div class="modal-head">
+      <h2>搜索</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group"><input id="searchInput" type="text" placeholder="搜索项目/素材/选题..." oninput="searchQuery=this.value.toLowerCase();doSearch()" autofocus></div>
+    <div id="searchResults" style="margin-top:12px;"></div>
+  `;
+}
+
+function doSearch() {
+  const q = searchQuery.toLowerCase();
+  const container = document.getElementById('searchResults');
+  if (!q) { container.innerHTML = ''; return; }
+  let results = [];
+  (data.projects||[]).forEach(p => { if (p.name.toLowerCase().includes(q) || (p.goal||'').toLowerCase().includes(q)) results.push({ type: '项目', id: p.id, title: p.name, view: 'project' }); });
+  (data.materials||[]).forEach(m => { if (m.title.toLowerCase().includes(q) || (m.content||'').toLowerCase().includes(q)) results.push({ type: '素材', id: m.id, title: m.title, view: 'material' }); });
+  (data.topics||[]).forEach(tp => { if (tp.title.toLowerCase().includes(q) || (tp.angle||'').toLowerCase().includes(q)) results.push({ type: '选题', id: tp.id, title: tp.title, view: 'topic' }); });
+  (data.todos||[]).forEach(t => { if (t.title.toLowerCase().includes(q)) results.push({ type: '任务', id: t.id, title: t.title, view: 'todo' }); });
+  if (!results.length) { container.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;">没找到相关结果喵~</div>'; return; }
+  container.innerHTML = results.slice(0, 20).map(r => `
+    <div class="list-item" onclick="closeModal();switchView('${r.view}','${r.id}')">
+      <div class="icon-box" style="background:var(--primary-soft);"><span style="font-size:20px;">✅</span></div>
+      <div class="content">
+        <div class="title">${escapeHtml(r.title)}</div>
+        <div class="meta">${r.type}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteItem(listName, id) {
+  if (!confirm('确定要删除吗？小猫会难过的喵~')) return;
+  const list = data[listName];
+  if (!list) return;
+  const idx = list.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  list.splice(idx, 1);
+  save();
+  showToast('已删除喵~');
+  switchView(currentView);
+}
+
+// ==================== 初始化 ====================
+function init() {
+  const avatar = data.avatar || "🐾";
+  const username = data.username || "运营喵";
+  renderNav();
+  document.getElementById('main').innerHTML = renderHome();
+  updateFabMenu();
+  const today = todayStr();
+  const nav = NAV.find(n=>n.view==='home');
+  document.getElementById('topbarTitle').innerHTML = `<h1>工作台</h1><p>${nav?.desc || '和小猫一起工作'}</p>`;
+}
+init();
+</script>
+</body>
+</html>
