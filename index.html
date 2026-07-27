@@ -1698,7 +1698,13 @@ function autoDetectPlatform() {
 function saveMaterial(e, editId) {
   const fd = new FormData(e.target);
   const tags = (fd.get('tags')||'').split(/[,，]/).map(s=>s.trim()).filter(Boolean);
-  const obj = { title: fd.get('title'), type: fd.get('type'), content: fd.get('content'), projectId: fd.get('projectId'), tags, note: fd.get('note') };
+  const content = fd.get('content');
+  let title = '';
+  if (content.startsWith('http')) {
+    try { const pf = detectPlatform(content); title = (pf ? pf + ' · ' : '') + (new URL(content).pathname.split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ')?.slice(0,50) || new URL(content).hostname.replace('www.','')); }
+    catch(e) { title = content.slice(0,40); }
+  } else { title = content.split('\\n')[0]?.slice(0,40) || content.slice(0,30); }
+  const obj = { title, type: content.startsWith('http')?'link':'text', content, projectId: fd.get('projectId'), tags, note: fd.get('note') };
   if (editId) { const m = data.materials.find(x=>x.id===editId); if(m) Object.assign(m, obj); }
   else { data.materials.push({ id: uid(), ...obj, created: todayStr() }); }
   save(); closeModal(); switchView('material'); showToast('素材已保存喵~');
