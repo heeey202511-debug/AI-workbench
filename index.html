@@ -1536,6 +1536,15 @@ function updateFabMenu() {
   if (currentView === 'report') {
     items.push({ icon: '📊', label: '写日报', view: 'report', cls: 'var(--success-soft)' });
   }
+  if (currentView === 'account') {
+    items.push({ icon: '👥', label: '添加账号', view: 'account', cls: 'var(--purple-soft)' });
+  }
+  if (currentView === 'schedule') {
+    items.push({ icon: '📅', label: '添加日程', view: 'schedule', cls: 'var(--purple-soft)' });
+  }
+  if (currentView === 'pomo') {
+    items.push({ icon: '🍅', label: '番茄钟', view: 'pomo', cls: 'var(--danger-soft)' });
+  }
   if (currentView === 'home') {
     items.push({ icon: '✅', label: '添加任务', view: 'todo', cls: 'var(--success-soft)' });
     items.push({ icon: '📂', label: '添加项目', view: 'project', cls: 'var(--purple-soft)' });
