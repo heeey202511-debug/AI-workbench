@@ -1644,23 +1644,19 @@ function renderMaterialForm(editId) {
   const projects = data.projects || [];
   return `
     <div class="modal-head">
-      <h2>${editId?'编辑素材':'收藏素材'}</h2>
+      <h2>${editId?'编辑素材':'添加素材'}</h2>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">直接粘贴链接，帮你自动识别平台、提取标题、推荐选题</div>
     <form onsubmit="saveMaterial(event,'${editId||''}');return false;">
-      <div class="form-group"><label>标题</label><input name="title" required value="${escapeHtml(m.title||'')}" placeholder="素材标题"></div>
-      <div class="form-group"><label>类型</label><select name="type">
-        <option value="link" ${m.type==='link'?'selected':''}>链接</option>
-        <option value="text" ${m.type==='text'?'selected':''}>文本</option>
-      </select></div>
-      <div class="form-group"><label>内容 / 链接</label><textarea name="content" oninput="autoDetectPlatform()">${escapeHtml(m.content||'')}</textarea></div>
-      <div id="autoDetectResult" style="display:none;padding:8px 12px;margin-bottom:10px;border-radius:12px;background:var(--success-soft);font-size:13px;color:var(--success);font-weight:600;"></div>
+      <div class="form-group"><label>🔗 粘贴链接</label><textarea name="content" oninput="autoDetectPlatform()" placeholder="粘贴小红书/抖音/B站/公众号等链接..." style="min-height:80px;">${escapeHtml(m.content||'')}</textarea></div>
+      <div id="autoDetectResult" style="display:none;padding:10px 14px;margin-bottom:12px;border-radius:12px;background:var(--success-soft);font-size:13px;color:var(--success);font-weight:600;"></div>
+      <div class="form-group"><label>标签（逗号分隔）</label><input name="tags" id="fTags" value="${(m.tags||[]).join(',')}" placeholder="自动填充" onfocus="autoDetectPlatform()"></div>
       <div class="form-group"><label>关联项目</label><select name="projectId">
-        <option value="">无</option>
+        <option value="">自动匹配</option>
         ${projects.map(p=>`<option value="${p.id}" ${m.projectId===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}
       </select></div>
-      <div class="form-group"><label>标签（逗号分隔）</label><input name="tags" value="${(m.tags||[]).join(',')}" placeholder="如：文案,工具,爆款"></div>
-      <div class="form-group"><label>备注</label><input name="note" value="${escapeHtml(m.note||'')}"></div>
+      <div class="form-group"><label>备注</label><input name="note" value="${escapeHtml(m.note||'')}" placeholder="一句话补充"></div>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" onclick="closeModal()">取消</button>
         <button type="submit" class="btn btn-primary">保存</button>
