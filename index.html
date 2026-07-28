@@ -1474,7 +1474,10 @@ function renderScheduleView() {
       </div>
       <div class="cal-grid">${cells.join('')}</div>
     </div>
-    <div class="cal-sel-head">${fmtDate(calSel)}${calSel===today?' · 今天':''} · 共 ${selItems.length} 项</div>
+    <div class="cal-sel-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <span>${fmtDate(calSel)}${calSel===today?' · 今天':''} · 共 ${selItems.length} 项</span>
+      ${selItems.length ? `<button class="btn btn-ghost" style="padding:4px 10px;font-size:12px;" onclick="clearDaySchedules('${calSel}')">清空这一天</button>` : ''}
+    </div>
     <button class="btn btn-primary" style="width:100%;margin:8px 0 14px;" onclick="openModal('schedule','')">+ 在 ${fmtDate(calSel)} 添加日程</button>
     ${selList}
   `;
@@ -1494,6 +1497,15 @@ function calGoToday() {
 }
 function calSelect(ds) {
   calSel = ds;
+  switchView('schedule');
+}
+function clearDaySchedules(ds) {
+  const n = (data.schedules||[]).filter(x => x.date === ds).length;
+  if (!n) return showToast('这一天本来就没有安排');
+  if (!confirm(`确定清空 ${fmtDate(ds)} 的全部 ${n} 项日程吗？`)) return;
+  data.schedules = (data.schedules||[]).filter(x => x.date !== ds);
+  save();
+  showToast('已清空喵~');
   switchView('schedule');
 }
 function renderScheduleDetail(id) {
