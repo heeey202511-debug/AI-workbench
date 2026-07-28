@@ -957,10 +957,35 @@ function toggleMaterialNewTab() {
   switchView('material');
   showToast(data.materialNewTab ? '已开启：新窗口打开' : '已关闭：当前页打开');
 }
+function extractUrl(text) {
+  if (!text) return '';
+  const s = String(text).trim();
+  const clean = (u) => u.replace(/[.,。，;；)\]】]+$/, '');
+  const m1 = s.match(/https?:\/\/[^\s"'<>]+/i);
+  if (m1) return clean(m1[0]);
+  const known = ['v.douyin.com','b23.tv','xhslink.com','xhs.cn','t.cn','t.co','youtu.be','bit.ly','tinyurl.com','goo.gl','is.gd','qr.cx','lnk.to','xiaohongshu.com','douyin.com','bilibili.com','zhihu.com','weibo.com','weixin.qq.com','mp.weixin.qq.com','ixigua.com','youtube.com','instagram.com','taobao.com','tmall.com','x.com','twitter.com','kuaishou.com'];
+  const low = s.toLowerCase();
+  for (const dom of known) {
+    const i = low.indexOf(dom);
+    if (i >= 0) {
+      let u = s.slice(i);
+      const stop = u.search(/[\s"'<>]/);
+      if (stop > 0) u = u.slice(0, stop);
+      return 'https://' + clean(u);
+    }
+  }
+  const m3 = s.match(/[a-z0-9-]{2,}\.[a-z]{2,}(?:\/[^\s"'<>]*)?/i);
+  if (m3) {
+    const u = clean(m3[0]);
+    if (u.length >= 6) return 'https://' + u;
+  }
+  return '';
+}
 function openExtUrl(raw) {
-  let url = (raw||'').trim();
+  // 先识别/抽取真正的链接（短链、分享文案里夹的链接都能救）
+  let url = extractUrl(raw) || (raw||'').trim();
   if (!url) return showToast('没有可打开的链接');
-  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) url = 'https://' + url;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   // iPhone 上打开 https 链接会经系统「通用链接」自动跳进对应 App（小红书/抖音/B站…）并定位到具体页面
   if (data.materialNewTab) {
     const a = document.createElement('a');
@@ -2002,9 +2027,14 @@ function autoDetectPlatform() {
 function saveMaterial(e, editId) {
   const fd = new FormData(e.target);
   const tags = (fd.get('tags')||'').split(/[,，]/).map(s=>s.trim()).filter(Boolean);
-  const content = (fd.get('content')||'').trim();
-  const mtype = fd.get('mtype') || (content.startsWith('http') ? 'link' : 'text');
-  let title = '', type = mtype, platform = '';
+  const rawContent = (fd.get('content')||'').trim();
+  const mtype = fd.get('mtype') || (extractUrl(rawContent) ? 'link' : 'text');
+  let title = '', type = mtype, platform = '', content;
+  if (mtype === 'text') {
+    content = rawContent;
+  } else {
+    content = extractUrl(rawContent) || rawContent; // 智能抽取真正的链接（也兼容短链）
+  }
   if (mtype === 'blogger') {
     platform = detectPlatform(content);
     title = (fd.get('bloggerName')||'').trim() || extractBloggerName(content, platform) || (platform ? platform + ' 博主' : '未命名博主');
