@@ -421,6 +421,7 @@ const DEFAULT_DATA = {
   username: '大脸猫猫',
   dietGoal: 2000,
   pomoTotal: 0,
+  materialAppOpen: false,
   schedules: [
     { id: 'sc1', title: '浏览 arXiv + 技术动态', start: '08:00', end: '08:30', date: todayStr(), note: 'AI 领域最新论文和新闻' },
     { id: 'sc2', title: '内容创作（图文/视频）', start: '09:00', end: '11:30', date: todayStr(), note: '专注输出时间' },
@@ -950,6 +951,49 @@ function renderProjectDetail(id) {
 }
 
 function setMaterialFilter(f) { window.materialFilter = f; switchView('material'); }
+function toggleMaterialAppOpen() {
+  data.materialAppOpen = !data.materialAppOpen;
+  save();
+  switchView('material');
+  showToast(data.materialAppOpen ? '已开启：优先用 App 打开' : '已关闭：用浏览器打开');
+}
+function appSchemeFor(url) {
+  const u = (url||'').toLowerCase();
+  const map = [
+    [/xiaohongshu\.com/, 'xhsdiscover://'],
+    [/bilibili\.com/, 'bilibili://'],
+    [/douyin\.com/, 'snssdk1128://'],
+    [/tiktok\.com/, 'tiktok://'],
+    [/kuaishou\.com/, 'kwai://'],
+    [/weibo\.com/, 'sinaweibo://'],
+    [/zhihu\.com/, 'zhihu://'],
+    [/ixigua\.com/, 'ixigua://'],
+    [/youtube\.com|youtu\.be/, 'youtube://'],
+    [/instagram\.com/, 'instagram://'],
+    [/taobao\.com|tmall\.com/, 'taobao://'],
+    [/weixin\.qq\.com|mp\.weixin\.qq\.com/, 'weixin://']
+  ];
+  for (const [re, s] of map) if (re.test(u)) return s;
+  return null;
+}
+function openExtUrl(raw) {
+  let url = (raw||'').trim();
+  if (!url) return showToast('没有可打开的链接');
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) url = 'https://' + url;
+  const scheme = appSchemeFor(url);
+  if (scheme && data.materialAppOpen) {
+    let launched = false;
+    const cleanup = () => { clearTimeout(timer); document.removeEventListener('visibilitychange', onVis); };
+    const onVis = () => { if (document.hidden) { launched = true; cleanup(); } };
+    const timer = setTimeout(() => { if (!launched) location.href = url; }, 1200);
+    document.addEventListener('visibilitychange', onVis);
+    location.href = scheme;
+    return;
+  }
+  const w = window.open(url, '_blank');
+  if (!w) location.href = url;
+}
+function openExtUrlFromEl(el) { openExtUrl(el.getAttribute('data-url')); }
 function renderMaterialView() {
   const mats = data.materials || [];
   const filter = window.materialFilter || 'all';
@@ -963,6 +1007,13 @@ function renderMaterialView() {
     <div style="display:flex;gap:8px;margin:6px 0 16px;">
       <button onclick="setMaterialFilter('all')" style="flex:1;padding:9px;border-radius:12px;border:1px solid ${filter==='all'?'var(--primary)':'var(--border)'};background:${filter==='all'?'var(--pink-soft)':'#fff'};color:${filter==='all'?'var(--primary)':'var(--text-dim)'};font-weight:700;cursor:pointer;font-size:13px;">全部 ${mats.length}</button>
       <button onclick="setMaterialFilter('blogger')" style="flex:1;padding:9px;border-radius:12px;border:1px solid ${filter==='blogger'?'var(--primary)':'var(--border)'};background:${filter==='blogger'?'var(--pink-soft)':'#fff'};color:${filter==='blogger'?'var(--primary)':'var(--text-dim)'};font-weight:700;cursor:pointer;font-size:13px;">🐱 博主主页 ${bloggerCount}</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin:-8px 0 14px;font-size:13px;color:var(--text-soft);">
+      <span>🔗 用 App 打开链接</span>
+      <button onclick="toggleMaterialAppOpen()" style="position:relative;width:42px;height:24px;border-radius:12px;border:none;cursor:pointer;background:${data.materialAppOpen?'var(--primary)':'#e8e0db'};transition:background .2s;flex-shrink:0;">
+        <span style="position:absolute;top:2px;${data.materialAppOpen?'left:20px;':'left:2px;'}width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+      </button>
+      <span style="color:var(--text-dim);font-size:11px;">${data.materialAppOpen?'已开启':'关'}</span>
     </div>
     ${list.length === 0 ? `
       <div class="empty">
@@ -1018,7 +1069,8 @@ function renderMaterialDetail(id) {
     ${refTopics.length ? `<div class="detail-section"><h3>💡 已生成选题 (${refTopics.length})</h3>${refTopics.map(tp => renderTopicCard(tp)).join('')}</div>` : ''}
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="openModal('material','${m.id}')">编辑素材</button>
-      ${m.type==='blogger' ? `<button class="btn btn-ghost" onclick="window.open('${escapeHtml(m.content)}','_blank')">🔗 打开主页</button>` : `<button class="btn btn-ghost" onclick="materialToTopic('${m.id}')">一键转选题</button>`}
+      ${m.type==='blogger' ? `<button class="btn btn-ghost" onclick="openExtUrlFromEl(this)" data-url="${escapeHtml(m.content)}">🔗 打开主页</button>` : `<button class="btn btn-ghost" onclick="materialToTopic('${m.id}')">一键转选题</button>`}
+      ${m.type==='link' ? `<button class="btn btn-ghost" onclick="openExtUrlFromEl(this)" data-url="${escapeHtml(m.content)}">🔗 打开链接</button>` : ''}
       <button class="btn btn-danger" onclick="deleteItem('materials','${m.id}')">删除</button>
     </div>
   `;
@@ -1304,7 +1356,7 @@ function renderNewsView() {
       <p style="font-size:13px;color:var(--text-soft);margin-top:4px;">${isLive ? '🔴 实时抓取自网络' : '示例内容 · 联网后自动更新为实时新闻'}</p>
     </div>
     ${news.map(n => `
-      <div class="news-item" ${n.url ? `onclick="window.open('${escapeHtml(n.url)}','_blank')"` : ''} style="${n.url ? 'cursor:pointer' : ''}">
+      <div class="news-item"${n.url ? ` onclick="openExtUrlFromEl(this)" data-url="${escapeHtml(n.url)}" style="cursor:pointer;"` : ''}>
         <div class="title">${escapeHtml(n.title)}</div>
         ${n.tagline ? `<div class="tagline">${escapeHtml(n.tagline)}</div>` : ''}
         <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">${escapeHtml(n.source || '')} · ${escapeHtml(n.date || '')}</div>
@@ -1323,7 +1375,7 @@ function renderStockView() {
       <div class="text"><h2>AI 赛道快讯</h2><p>共 ${news.length} 条${isLive ? ' · 🔴 实时抓取自网络' : ' 行情资讯 · 示例内容'}</p></div>
     </div>
     ${news.map((n,i) => `
-      <div class="news-item" ${n.url ? `onclick="window.open('${escapeHtml(n.url)}','_blank')"` : `onclick="window.open('https://www.google.com/search?q='+encodeURIComponent('${escapeHtml(n.title).replace(/'/g,"\\'")}'),'_blank')"`} style="cursor:pointer;">
+      <div class="news-item" onclick="openExtUrlFromEl(this)" data-url="${escapeHtml(n.url || ('https://www.google.com/search?q='+encodeURIComponent(n.title)))}" style="cursor:pointer;">
         <div class="title">${escapeHtml(n.title)}</div>
         <div class="tagline">${escapeHtml(n.source || '')} · ${escapeHtml(n.date || '')}</div>
       </div>
