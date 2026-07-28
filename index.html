@@ -305,6 +305,33 @@
   .toast { position: fixed; top: calc(16px + var(--safe-top)); left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--text); color: white; padding: 10px 18px; border-radius: 24px; font-size: 13px; font-weight: 600; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.25s; box-shadow: var(--shadow-lg); }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ===== 日程日历 ===== */
+  .cal-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin: 14px 0; box-shadow: var(--shadow-sm); }
+  .cal-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .cal-nav { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-soft); font-size: 18px; font-weight: 700; color: var(--text-soft); cursor: pointer; flex-shrink: 0; line-height: 1; }
+  .cal-nav:active { background: var(--primary-soft); }
+  .cal-title { font-size: 16px; font-weight: 800; flex: 1; text-align: center; }
+  .cal-today-btn { padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-soft); font-size: 13px; font-weight: 600; color: var(--text-soft); cursor: pointer; flex-shrink: 0; }
+  .cal-today-btn:active { background: var(--primary-soft); }
+  .cal-add-btn { flex-shrink: 0; padding: 7px 12px; font-size: 13px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-weekdays { margin-bottom: 4px; }
+  .cal-wd { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-dim); padding: 4px 0; }
+  .cal-cell { min-height: 62px; border-radius: 12px; border: 1px solid var(--border-soft); background: var(--bg); padding: 4px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; overflow: hidden; transition: background .15s; }
+  .cal-cell:active { background: var(--primary-hover); }
+  .cal-empty { background: transparent; border: none; cursor: default; min-height: 62px; }
+  .cal-empty:active { background: transparent; }
+  .cal-daynum { font-size: 13px; font-weight: 700; color: var(--text-soft); }
+  .cal-today .cal-daynum { color: #fff; background: var(--primary); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .cal-sel { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-soft); background: var(--bg-pink); }
+  .cal-evts { display: flex; flex-direction: column; gap: 2px; }
+  .cal-evt { background: var(--purple-soft); border-radius: 6px; padding: 1px 4px; font-size: 10px; line-height: 1.3; color: #6d28d9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 3px; }
+  .cal-evt:active { filter: brightness(0.95); }
+  .cal-evt-t { font-weight: 700; flex-shrink: 0; }
+  .cal-evt-x { overflow: hidden; text-overflow: ellipsis; }
+  .cal-more { font-size: 10px; color: var(--text-dim); padding-left: 4px; }
+  .cal-sel-head { font-size: 15px; font-weight: 800; margin: 4px 2px; }
+
   @media (max-width: 760px) { .stats-grid, .modules-grid { gap: 8px; padding: 0 16px; } .hero { margin: 0 16px; padding: 24px 16px 14px; } main { padding: 0 16px 140px; } .section-label { padding: 20px 16px 8px; } }
 </style>
 </head>
@@ -402,6 +429,8 @@ const DEFAULT_DATA = {
 };let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
 function getSchedules() { return data.schedules || []; }
 function findSchedule(id) { return (data.schedules||[]).find(x => x.id === id); }
+let calView = null;   // 当前展示的月份 'YYYY-MM'
+let calSel = null;    // 当前选中的日期 'YYYY-MM-DD'
 const stored = localStorage.getItem(STORE_KEY);
 if (stored) {
   try {
@@ -1385,26 +1414,87 @@ function pomoPause(){pomoRunning=false;clearInterval(pomoTimer);document.getElem
 function pomoReset(){pomoRunning=false;clearInterval(pomoTimer);pomoSeconds=25*60;pomoIsWork=true;document.getElementById('pomoDisplay').textContent='25:00';document.getElementById('pomoBar').style.width='0%';document.getElementById('pomoLabel').textContent='准备开始';document.getElementById('pomoStart').style.display='';document.getElementById('pomoPause').style.display='none';}
 
 function renderScheduleView() {
-  const t = todayStr();
-  const list = (data.schedules||[]).filter(x => x.date === t).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+  const today = todayStr();
+  if (!calView) calView = today.slice(0,7);
+  if (!calSel) calSel = today;
+  const [yy, mm] = calView.split('-').map(Number);
+  const first = new Date(yy, mm-1, 1);
+  const startW = first.getDay();                 // 0=周日
+  const daysInMonth = new Date(yy, mm, 0).getDate();
+  const monthName = `${yy}年${mm}月`;
+
+  // 按日期归集日程
+  const byDate = {};
+  (data.schedules||[]).forEach(s => { (byDate[s.date] = byDate[s.date] || []).push(s); });
+
+  const totalCells = Math.ceil((startW + daysInMonth) / 7) * 7;
+  const cells = [];
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - startW + 1;
+    if (dayNum < 1 || dayNum > daysInMonth) { cells.push('<div class="cal-cell cal-empty"></div>'); continue; }
+    const ds = `${yy}-${String(mm).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+    const items = (byDate[ds]||[]).slice().sort((a,b) => (a.start||'').localeCompare(b.start||''));
+    const isToday = ds === today, isSel = ds === calSel;
+    const dots = items.slice(0,3).map(s => `<div class="cal-evt" onclick="event.stopPropagation();openModal('schedule','${s.id}')"><span class="cal-evt-t">${s.start||''}</span><span class="cal-evt-x">${escapeHtml(s.title)}</span></div>`).join('');
+    const more = items.length > 3 ? `<div class="cal-more">+${items.length-3}</div>` : '';
+    cells.push(`<div class="cal-cell${isToday?' cal-today':''}${isSel?' cal-sel':''}" onclick="calSelect('${ds}')">
+      <div class="cal-daynum">${dayNum}</div>
+      <div class="cal-evts">${dots}${more}</div>
+    </div>`);
+  }
+
+  const selItems = (byDate[calSel]||[]).slice().sort((a,b) => (a.start||'').localeCompare(b.start||''));
+  const selList = selItems.length ? selItems.map(s => `
+      <div class="list-item" onclick="openModal('schedule','${s.id}')">
+        <span class="list-action" onclick="event.stopPropagation();openModal('schedule','${s.id}')">编辑</span>
+        <div class="icon-box" style="background:var(--purple-soft);font-size:18px;">📅</div>
+        <div class="content">
+          <div class="title">${escapeHtml(s.title)}</div>
+          <div class="meta">${s.start||'--'} → ${s.end||'--'}</div>
+          <div class="def">${escapeHtml(s.note||'')}</div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty" style="padding:24px 0;"><span style="font-size:48px;">🐈</span><p>这一天还没有安排</p></div>';
+
   return `
     <div class="view-head">
       <img src="cats/c11.png" style="width:60px;height:60px;object-fit:contain;">
-      <div class="text"><h2>今日日程</h2><p>${t.replace(/-/g,'/')} · 共 ${list.length} 项安排</p></div>
+      <div class="text"><h2>日程日历</h2><p>点日期看安排，点 ‹ › 翻月份</p></div>
     </div>
-    ${!list.length ? '<div class="empty"><span style="font-size:60px;">🐈</span><h3>今天还没有安排</h3><p>添加日程，让每一天都充实喵~</p></div>' : ''}
-    ${list.map(sc => `
-      <div class="list-item" onclick="openModal('schedule','${sc.id}')">
-        <span class="list-action" onclick="event.stopPropagation();openModal('schedule','${sc.id}')">编辑</span>
-        <div class="icon-box" style="background:var(--purple-soft);font-size:18px;">📅</div>
-        <div class="content">
-          <div class="title">${escapeHtml(sc.title)}</div>
-          <div class="meta">${sc.start||'--'} → ${sc.end||'--'}</div>
-          <div class="def">${escapeHtml(sc.note||'')}</div>
-        </div>
+    <div class="cal-wrap">
+      <div class="cal-bar">
+        <button class="cal-nav" onclick="calShift(-1)">‹</button>
+        <div class="cal-title">${monthName}</div>
+        <button class="cal-nav" onclick="calShift(1)">›</button>
+        <button class="cal-today-btn" onclick="calGoToday()">今天</button>
+        <button class="btn btn-primary cal-add-btn" onclick="openModal('schedule','')">+ 新建</button>
       </div>
-    `).join('')}
+      <div class="cal-grid cal-weekdays">
+        ${['日','一','二','三','四','五','六'].map(w => `<div class="cal-wd">${w}</div>`).join('')}
+      </div>
+      <div class="cal-grid">${cells.join('')}</div>
+    </div>
+    <div class="cal-sel-head">${fmtDate(calSel)}${calSel===today?' · 今天':''} · 共 ${selItems.length} 项</div>
+    <button class="btn btn-primary" style="width:100%;margin:8px 0 14px;" onclick="openModal('schedule','')">+ 在 ${fmtDate(calSel)} 添加日程</button>
+    ${selList}
   `;
+}
+function calShift(delta) {
+  if (!calView) calView = todayStr().slice(0,7);
+  let [y, m] = calView.split('-').map(Number);
+  m += delta;
+  if (m < 1) { m = 12; y--; } else if (m > 12) { m = 1; y++; }
+  calView = `${y}-${String(m).padStart(2,'0')}`;
+  switchView('schedule');
+}
+function calGoToday() {
+  calView = todayStr().slice(0,7);
+  calSel = todayStr();
+  switchView('schedule');
+}
+function calSelect(ds) {
+  calSel = ds;
+  switchView('schedule');
 }
 function renderScheduleDetail(id) {
   const sc = findSchedule(id); if(!sc) return '<div class="empty"><span style="font-size:60px;">🐈</span><h3>日程不见了喵</h3></div>';
@@ -1423,8 +1513,10 @@ function renderScheduleDetail(id) {
 }
 function renderScheduleForm(editId) {
   const sc = editId ? findSchedule(editId) : {};
+  const defDate = editId ? (sc.date || todayStr()) : (calSel || todayStr());
   return `<div class="modal-head"><h2>${editId?'编辑日程':'新增日程'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
   <div class="form-group"><label>日程标题</label><input id="fSchTitle" value="${escapeHtml(sc.title||'')}" placeholder="要做什么？"></div>
+  <div class="form-group"><label>日期</label><input id="fSchDate" type="date" value="${defDate}"></div>
   <div class="form-row">
     <div class="form-group"><label>开始</label><input id="fSchStart" type="time" value="${sc.start||'09:00'}"></div>
     <div class="form-group"><label>结束</label><input id="fSchEnd" type="time" value="${sc.end||'10:00'}"></div>
@@ -1435,9 +1527,11 @@ function renderScheduleForm(editId) {
 function saveSchedule(editId) {
   const title = document.getElementById('fSchTitle').value.trim();
   if (!title) return showToast('请输入标题');
-  const item = { title, start: document.getElementById('fSchStart').value, end: document.getElementById('fSchEnd').value, note: document.getElementById('fSchNote').value.trim(), date: todayStr() };
+  const dateVal = document.getElementById('fSchDate').value || todayStr();
+  const item = { title, start: document.getElementById('fSchStart').value, end: document.getElementById('fSchEnd').value, note: document.getElementById('fSchNote').value.trim(), date: dateVal };
   if (editId) { const idx = data.schedules.findIndex(x => x.id === editId); if (idx >= 0) data.schedules[idx] = Object.assign(data.schedules[idx], item); }
   else { item.id = uid(); data.schedules.push(item); }
+  calSel = dateVal; calView = dateVal.slice(0,7);
   save(); closeModal(); switchView('schedule'); showToast(editId ? '日程已更新' : '日程添加成功');
 }
 function renderTomatoForm() {
