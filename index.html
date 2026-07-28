@@ -467,23 +467,38 @@ function syncPull() {
   });
 }
 
-// ---- 实时新闻（前端，依赖后端 /api/news） ----
+// ---- 实时新闻（优先后端 /api/news；未配置后端则直连 HN 免费接口，免部署） ----
 let LIVE_NEWS = { tech: null, stock: null, _loading: false };
-function fetchLiveNews() {
-  const base = getSyncBase();
-  if (!base || LIVE_NEWS._loading) return;
-  LIVE_NEWS._loading = true;
-  fetch(base.replace(/\/$/, '') + '/api/news', { headers: { 'Content-Type': 'application/json' } })
+function fetchHackerNews(query, n) {
+  return fetch('https://hn.algolia.com/api/v1/search_by_date?query=' + encodeURIComponent(query) + '&tags=story&hitsPerPage=' + n)
     .then(r => r.json())
-    .then(res => {
-      if (res && res.ok) {
-        if (res.tech && res.tech.length) LIVE_NEWS.tech = res.tech;
-        if (res.stock && res.stock.length) LIVE_NEWS.stock = res.stock;
-        if (currentView === 'news' || currentView === 'stock') switchView(currentView);
-      }
-    })
-    .catch(() => {})
-    .finally(() => { LIVE_NEWS._loading = false; });
+    .then(d => (d.hits || []).filter(h => h.title).map(h => ({
+      title: h.title,
+      url: h.url || ('https://news.ycombinator.com/item?id=' + h.objectID),
+      date: (h.created_at || '').slice(0, 10),
+      source: 'Hacker News'
+    })));
+}
+function fetchLiveNews() {
+  if (LIVE_NEWS._loading) return;
+  LIVE_NEWS._loading = true;
+  const done = () => { LIVE_NEWS._loading = false; if (currentView === 'news' || currentView === 'stock') switchView(currentView); };
+  const base = getSyncBase();
+  if (base) {
+    fetch(base.replace(/\/$/, '') + '/api/news', { headers: { 'Content-Type': 'application/json' } })
+      .then(r => r.json()).then(res => {
+        if (res && res.ok) {
+          if (res.tech && res.tech.length) LIVE_NEWS.tech = res.tech;
+          if (res.stock && res.stock.length) LIVE_NEWS.stock = res.stock;
+        }
+      }).catch(() => {}).finally(done);
+  } else {
+    Promise.all([fetchHackerNews('AI', 6), fetchHackerNews('stock market Nvidia earnings', 5)])
+      .then(([tech, stock]) => {
+        if (tech.length) LIVE_NEWS.tech = tech;
+        if (stock.length) LIVE_NEWS.stock = stock;
+      }).catch(() => {}).finally(done);
+  }
 }
 
 let currentView = 'home';
@@ -1257,7 +1272,7 @@ function renderNewsView() {
     <div class="news-head">
       <img src="cats/c2.png" style="width:60px;height:60px;object-fit:contain;">
       <h2 style="font-size:20px;font-weight:800;">今日科技动态</h2>
-      <p style="font-size:13px;color:var(--text-soft);margin-top:4px;">${isLive ? '🔴 实时抓取自网络 · 每 30 分钟更新' : '示例内容 · 在 ☁️ 配置同步服务器后自动更新'}</p>
+      <p style="font-size:13px;color:var(--text-soft);margin-top:4px;">${isLive ? '🔴 实时抓取自网络' : '示例内容 · 联网后自动更新为实时新闻'}</p>
     </div>
     ${news.map(n => `
       <div class="news-item" ${n.url ? `onclick="window.open('${escapeHtml(n.url)}','_blank')"` : ''} style="${n.url ? 'cursor:pointer' : ''}">
