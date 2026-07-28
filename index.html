@@ -421,7 +421,7 @@ const DEFAULT_DATA = {
   username: '大脸猫猫',
   dietGoal: 2000,
   pomoTotal: 0,
-  materialAppOpen: false,
+  materialNewTab: true,
   schedules: [
     { id: 'sc1', title: '浏览 arXiv + 技术动态', start: '08:00', end: '08:30', date: todayStr(), note: 'AI 领域最新论文和新闻' },
     { id: 'sc2', title: '内容创作（图文/视频）', start: '09:00', end: '11:30', date: todayStr(), note: '专注输出时间' },
@@ -951,47 +951,25 @@ function renderProjectDetail(id) {
 }
 
 function setMaterialFilter(f) { window.materialFilter = f; switchView('material'); }
-function toggleMaterialAppOpen() {
-  data.materialAppOpen = !data.materialAppOpen;
+function toggleMaterialNewTab() {
+  data.materialNewTab = !data.materialNewTab;
   save();
   switchView('material');
-  showToast(data.materialAppOpen ? '已开启：优先用 App 打开' : '已关闭：用浏览器打开');
-}
-function appSchemeFor(url) {
-  const u = (url||'').toLowerCase();
-  const map = [
-    [/xiaohongshu\.com/, 'xhsdiscover://'],
-    [/bilibili\.com/, 'bilibili://'],
-    [/douyin\.com/, 'snssdk1128://'],
-    [/tiktok\.com/, 'tiktok://'],
-    [/kuaishou\.com/, 'kwai://'],
-    [/weibo\.com/, 'sinaweibo://'],
-    [/zhihu\.com/, 'zhihu://'],
-    [/ixigua\.com/, 'ixigua://'],
-    [/youtube\.com|youtu\.be/, 'youtube://'],
-    [/instagram\.com/, 'instagram://'],
-    [/taobao\.com|tmall\.com/, 'taobao://'],
-    [/weixin\.qq\.com|mp\.weixin\.qq\.com/, 'weixin://']
-  ];
-  for (const [re, s] of map) if (re.test(u)) return s;
-  return null;
+  showToast(data.materialNewTab ? '已开启：新窗口打开' : '已关闭：当前页打开');
 }
 function openExtUrl(raw) {
   let url = (raw||'').trim();
   if (!url) return showToast('没有可打开的链接');
   if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) url = 'https://' + url;
-  const scheme = appSchemeFor(url);
-  if (scheme && data.materialAppOpen) {
-    let launched = false;
-    const cleanup = () => { clearTimeout(timer); document.removeEventListener('visibilitychange', onVis); };
-    const onVis = () => { if (document.hidden) { launched = true; cleanup(); } };
-    const timer = setTimeout(() => { if (!launched) location.href = url; }, 1200);
-    document.addEventListener('visibilitychange', onVis);
-    location.href = scheme;
-    return;
+  // iPhone 上打开 https 链接会经系统「通用链接」自动跳进对应 App（小红书/抖音/B站…）并定位到具体页面
+  if (data.materialNewTab) {
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.style.display = 'none';
+    document.body.appendChild(a); a.click(); a.remove();
+  } else {
+    location.href = url;
   }
-  const w = window.open(url, '_blank');
-  if (!w) location.href = url;
 }
 function openExtUrlFromEl(el) { openExtUrl(el.getAttribute('data-url')); }
 function renderMaterialView() {
@@ -1009,11 +987,11 @@ function renderMaterialView() {
       <button onclick="setMaterialFilter('blogger')" style="flex:1;padding:9px;border-radius:12px;border:1px solid ${filter==='blogger'?'var(--primary)':'var(--border)'};background:${filter==='blogger'?'var(--pink-soft)':'#fff'};color:${filter==='blogger'?'var(--primary)':'var(--text-dim)'};font-weight:700;cursor:pointer;font-size:13px;">🐱 博主主页 ${bloggerCount}</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin:-8px 0 14px;font-size:13px;color:var(--text-soft);">
-      <span>🔗 用 App 打开链接</span>
-      <button onclick="toggleMaterialAppOpen()" style="position:relative;width:42px;height:24px;border-radius:12px;border:none;cursor:pointer;background:${data.materialAppOpen?'var(--primary)':'#e8e0db'};transition:background .2s;flex-shrink:0;">
-        <span style="position:absolute;top:2px;${data.materialAppOpen?'left:20px;':'left:2px;'}width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+      <span>🔗 新窗口打开链接</span>
+      <button onclick="toggleMaterialNewTab()" style="position:relative;width:42px;height:24px;border-radius:12px;border:none;cursor:pointer;background:${data.materialNewTab?'var(--primary)':'#e8e0db'};transition:background .2s;flex-shrink:0;">
+        <span style="position:absolute;top:2px;${data.materialNewTab?'left:20px;':'left:2px;'}width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
       </button>
-      <span style="color:var(--text-dim);font-size:11px;">${data.materialAppOpen?'已开启':'关'}</span>
+      <span style="color:var(--text-dim);font-size:11px;">${data.materialNewTab?'开':'关'}</span>
     </div>
     ${list.length === 0 ? `
       <div class="empty">
